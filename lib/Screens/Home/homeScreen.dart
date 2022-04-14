@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import '../../Model/export.dart';
@@ -10,6 +11,27 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+
+  FirebaseAuth auth = FirebaseAuth.instance;
+
+  _logar()async{
+
+    auth.signInWithEmailAndPassword(
+        email: "adm@gmail.com",
+        password: "admcelular123"
+    ).then((firebaseUser) {
+
+      print("usuario logado");
+
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _logar();
+  }
+
   @override
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;

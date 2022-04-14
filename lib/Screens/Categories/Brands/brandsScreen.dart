@@ -1,9 +1,9 @@
 import 'package:celular/widgets/buttonsAdd.dart';
 import 'package:celular/widgets/buttonsRegister.dart';
 import 'package:celular/widgets/dividerList.dart';
-import 'package:celular/widgets/inputRegister.dart';
 import 'package:celular/widgets/inputSearch.dart';
 import 'package:celular/widgets/itemsList.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import '../../../Model/export.dart';
 import '../../../widgets/showDialogRegister.dart';
@@ -17,10 +17,23 @@ class BrandsScreen extends StatefulWidget {
 
 class _BrandsScreenState extends State<BrandsScreen> {
 
+  FirebaseFirestore db = FirebaseFirestore.instance;
   TextEditingController _controllerSerch = TextEditingController();
   TextEditingController _controllerRegister = TextEditingController();
 
-  _cadastrar(){
+  _registerBrands(){
+    db.collection("marcas").doc(_controllerRegister.text).set({
+
+      "marca"  : _controllerRegister.text,
+
+    }).then((value){
+      Navigator.pop(context);
+      _controllerRegister.clear();
+    }
+    );
+  }
+
+  _showDialog(){
     showDialog(
         context: context,
         barrierDismissible: false,
@@ -28,10 +41,19 @@ class _BrandsScreenState extends State<BrandsScreen> {
           return ShowDialogRegister(
             title: 'Cadastrar Marca',
             hint: 'Nova Marca',
+            controllerRegister: _controllerRegister,
             list: [
-              ButtonsRegister(onTap: ()=>Navigator.pop(context), text: 'Cancelar', color: PaletteColor.greyButton),
+              ButtonsRegister(
+                  onTap: ()=>Navigator.pop(context),
+                  text: 'Cancelar',
+                  color: PaletteColor.greyButton
+              ),
               Spacer(),
-              ButtonsRegister(onTap: ()=>Navigator.pop(context), text: 'Incluir', color: PaletteColor.blueButton),
+              ButtonsRegister(
+                  onTap:()=>_registerBrands(),
+                  text: 'Incluir',
+                  color: PaletteColor.blueButton
+              ),
             ],
           );
         }
@@ -69,7 +91,7 @@ class _BrandsScreenState extends State<BrandsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   InputSearch(controller: _controllerSerch),
-                  ButtonsAdd(onPressed: ()=> _cadastrar())
+                  ButtonsAdd(onPressed: ()=> _showDialog())
                 ],
               ),
               ItemsList(item: 'Apple'),

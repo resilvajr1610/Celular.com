@@ -5,12 +5,13 @@ import 'inputRegister.dart';
 
 class ShowDialogRegister extends StatelessWidget {
 
-  final TextEditingController controllerRegister = TextEditingController();
+  final TextEditingController controllerRegister;
   final String title;
   final String hint;
   final List<Widget> list;
 
   ShowDialogRegister({
+    @required this.controllerRegister,
     @required this.title,
     @required this.list,
     @required this.hint,
@@ -24,7 +25,7 @@ class ShowDialogRegister extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          InputRegister(controller: controllerRegister, hint: this.hint,fonts: 20)
+          InputRegister(controller: this.controllerRegister, hint: this.hint,fonts: 20)
         ],
       ),
       contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),

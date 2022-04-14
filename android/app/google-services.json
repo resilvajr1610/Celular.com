@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "1033442318818",
+    "project_id": "celular-36983",
+    "storage_bucket": "celular-36983.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1033442318818:android:0f8c6e82ba413b3cf941bb",
+        "android_client_info": {
+          "package_name": "com.celular.celular"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1033442318818-flhtlkitcf1ts2nv1ahbq2sfpvm722p4.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA7Jfw26syZ4dUTp6bl3701zqVNMBrVjlo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1033442318818-flhtlkitcf1ts2nv1ahbq2sfpvm722p4.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
