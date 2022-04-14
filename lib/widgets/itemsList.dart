@@ -1,17 +1,22 @@
+import 'package:celular/Model/BrandsModel.dart';
 import 'package:flutter/material.dart';
 import '../Model/export.dart';
 
 class ItemsList extends StatelessWidget {
 
+  BrandsModel brandsModel;
   final String item;
 
+
   ItemsList({
-    @required this.item
+    this.brandsModel,
+    this.item
 });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return Container(
+      height: 40,
       padding: EdgeInsets.symmetric(horizontal: 25),
       child: Row(
         children: [
@@ -19,7 +24,7 @@ class ItemsList extends StatelessWidget {
               padding: EdgeInsets.symmetric(vertical: 5),
               alignment: Alignment.centerLeft,
               child: Text(
-                this.item,
+                brandsModel!=null? brandsModel.brands: this.item,
                 textAlign: TextAlign.left,
                 style: TextStyle(
                   fontSize: 20,
