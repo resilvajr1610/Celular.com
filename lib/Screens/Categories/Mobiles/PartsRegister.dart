@@ -142,7 +142,7 @@ class _PartsResgisterState extends State<PartsResgister> {
           fontWeight: FontWeight.w700,
         ),
         backgroundColor: PaletteColor.appBar,
-        title: Text('MODELO'),
+        title: Text('CELULAR'),
         actions: [
           Container(
             padding: EdgeInsets.symmetric(horizontal: 10),
@@ -176,20 +176,14 @@ class _PartsResgisterState extends State<PartsResgister> {
                       _selectedParts = valor;
                     });
                   }),
-              Container(
-                alignment: Alignment.centerLeft,
-                padding: EdgeInsets.symmetric(vertical: 10,horizontal: 10),
-                child: Text('Modelo',
-                  style: TextStyle(fontSize: 20,color: PaletteColor.darkGrey),),
-              ),
+              SizedBox(height: 20),
               Row(
                 children: [
                   Container(
                     width: width*0.6,
                     child: Column(
                       children: [
-                        InputRegister(controller: _controllerModelo, hint: 'Modelo',width: width*0.5,fonts: 20),
-                        InputRegister(controller: _controllerRef, hint: 'Referência',width: width*0.5,fonts: 20),
+                        InputRegister(controller: _controllerRef, hint: 'Referências',width: width*0.5,fonts: 20),
                       ],
                     ),
                   ),

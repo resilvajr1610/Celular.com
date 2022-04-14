@@ -43,42 +43,6 @@ class _MobilesScreenState extends State<MobilesScreen> {
     _loadingItensDropdown();
   }
 
-  _cadastrar(){
-    double width = MediaQuery.of(context).size.width;
-    showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context){
-          return SingleChildScrollView(
-            child: AlertDialog(
-              title: Center(child: Text('Cadastrar Celular')),
-              titleTextStyle: TextStyle(color: PaletteColor.darkGrey,fontSize: 20),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  DropdownItens(
-                      selected: _selected,
-                      listItens: _listItens,
-                      onChanged: (value){
-                        setState(() {
-                          _selected = value.toString();
-                        });
-                      }),
-                  InputRegister(controller: _controllerRegister, hint: 'Celular',width: width*0.7,fonts: 20)
-                ],
-              ),
-              contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
-              actions: [
-                ButtonsRegister(onTap: ()=>Navigator.pop(context), text: 'Cancelar', color: PaletteColor.greyButton),
-                Spacer(),
-                ButtonsRegister(onTap: ()=>Navigator.pop(context), text: 'Incluir', color: PaletteColor.blueButton),
-              ],
-            ),
-          );
-        }
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -108,7 +72,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   InputSearch(controller: _controllerSerch),
-                  ButtonsAdd(onPressed: ()=> _cadastrar())
+                  ButtonsAdd(onPressed: ()=> Navigator.pushNamed(context, "/partsRegister"))
                 ],
               ),
               DropdownItens(

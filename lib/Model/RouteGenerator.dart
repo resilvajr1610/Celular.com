@@ -1,8 +1,7 @@
 import 'package:celular/Model/export.dart';
-import 'package:celular/Screens/Categories/Parts/PartsRegister.dart';
+import 'package:celular/Screens/Categories/Mobiles/PartsRegister.dart';
 import 'package:celular/Screens/Home/categoriesScreen.dart';
 import 'package:celular/Screens/Categories/Brands/brandsScreen.dart';
-import 'package:celular/Screens/Categories/Parts/partsScreen.dart';
 import 'package:celular/Screens/Home/homeScreen.dart';
 import 'package:celular/Screens/Home/inventoryControlScreen.dart';
 import 'package:celular/Screens/Home/priceHistory.dart';
@@ -39,10 +38,6 @@ class RouteGenerator{
         case "/colors" :
           return MaterialPageRoute(
               builder: (_) => ColorsScreen()
-          );
-        case "/parts" :
-          return MaterialPageRoute(
-              builder: (_) => PartsScreen()
           );
         case "/partsRegister" :
           return MaterialPageRoute(
