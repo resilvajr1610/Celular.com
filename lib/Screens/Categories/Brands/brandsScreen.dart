@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:celular/Model/BrandsModel.dart';
 import 'package:celular/widgets/buttonsAdd.dart';
 import 'package:celular/widgets/buttonsRegister.dart';
