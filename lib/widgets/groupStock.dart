@@ -11,8 +11,8 @@ class GroupStock extends StatelessWidget {
   final TextEditingController controllerStockMin ;
   final TextEditingController controllerPriceSale;
   final TextEditingController controllerCod;
-  final List<DropdownMenuItem<String>>listItensUp;
-  final List<DropdownMenuItem<String>>listItensLow;
+  final Widget streamBuilderUp;
+  final Widget streamBuilderLow;
   final VoidCallback onTapCamera;
   final dynamic onChangedUp;
   final dynamic onChangedLow;
@@ -22,6 +22,7 @@ class GroupStock extends StatelessWidget {
   final bool showDropDownUp;
   final bool showDropDownLow;
   final bool showCod;
+  final bool showDisplay;
   final String titlePrice;
   final String title;
   final String subtitle;
@@ -46,8 +47,8 @@ class GroupStock extends StatelessWidget {
     @required this.showDropDownLow,
     @required this.showCod,
     this.onTapCamera,
-    this.listItensUp,
-    this.listItensLow,
+    this.streamBuilderUp,
+    this.streamBuilderLow,
     this.onChangedUp,
     this.onChangedLow,
     this.selectedUp,
@@ -55,7 +56,7 @@ class GroupStock extends StatelessWidget {
     @required this.showStockmin,
     @required this.showPrice,
     @required this.titlePrice,
-    @required this.showCamera,
+    @required this.showCamera, this.showDisplay,
 });
 
   @override
@@ -69,14 +70,14 @@ class GroupStock extends StatelessWidget {
         TextTitle(text: this.title, fonts: fontsTitle),
         showDropDownUp? DropdownItens(
             width: this.width,
-            //listItens: this.listItensUp,
+            streamBuilder: this.streamBuilderUp,
             onChanged: this.onChangedUp,
             selected: this.selectedUp
         ):Container(),
         showDropDownLow?TextTitle(text: this.subtitle, fonts: fontsSubtitle):Container(),
         showDropDownLow? DropdownItens(
             width: this.width,
-            //listItens: this.listItensLow,
+            streamBuilder: this.streamBuilderLow,
             onChanged: this.onChangedLow,
             selected: this.selectedLow
         ):Container(),

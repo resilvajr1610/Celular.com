@@ -8,7 +8,6 @@ class ItemsList extends StatelessWidget {
   final String data;
   VoidCallback onPressedDelete;
 
-
   ItemsList({
     this.data,
     this.item,

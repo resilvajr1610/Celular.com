@@ -9,7 +9,7 @@ class DropdownItens extends StatelessWidget {
   final double width;
 
   DropdownItens({
-    @required this.streamBuilder,
+    this.streamBuilder,
     @required this.onChanged,
     @required this.selected,
     @required this.width
@@ -29,8 +29,21 @@ class DropdownItens extends StatelessWidget {
         margin: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
         width: this.width,
         child: DropdownButtonHideUnderline(
-          child: this.streamBuilder
-        ),
+              child: streamBuilder!=null
+                  ?this.streamBuilder
+                  :DropdownButton(
+                iconEnabledColor: PaletteColor.blueButton,
+                iconSize: 40,
+                isExpanded: true,
+                value: this.selected,
+                hint: Text("Selecione",style: TextStyle(fontSize: 15)),
+                style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 12
+                ),
+                onChanged: onChanged,
+              ),
+        )
       ),
     );
   }
