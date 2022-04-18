@@ -4,13 +4,15 @@ import '../Model/export.dart';
 
 class ItemsList extends StatelessWidget {
 
-  BrandsModel brandsModel;
   final String item;
+  final String brands;
+  VoidCallback onPressedDelete;
 
 
   ItemsList({
-    this.brandsModel,
-    this.item
+    this.brands,
+    this.item,
+    this.onPressedDelete,
 });
 
   @override
@@ -24,7 +26,7 @@ class ItemsList extends StatelessWidget {
               padding: EdgeInsets.symmetric(vertical: 5),
               alignment: Alignment.centerLeft,
               child: Text(
-                brandsModel!=null? brandsModel.brands: this.item,
+                this.brands!=null? this.brands: this.item,
                 textAlign: TextAlign.left,
                 style: TextStyle(
                   fontSize: 20,
@@ -34,9 +36,12 @@ class ItemsList extends StatelessWidget {
               )
           ),
           Spacer(),
-          Icon(Icons.edit,color: PaletteColor.lightBlue),
           SizedBox(width: 20),
-          Icon(Icons.delete_forever,color: PaletteColor.lightBlue),
+          if(this.onPressedDelete != null)
+            GestureDetector(
+              onTap: this.onPressedDelete,
+              child: Icon(Icons.delete,color: PaletteColor.lightBlue),
+            )
         ],
       ),
     );

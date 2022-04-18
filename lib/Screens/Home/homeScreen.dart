@@ -57,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     text: "Cadastrar Categorias",
                     onPressed: () => Navigator.pushNamed(context, "/categories")),
                 ButtonsEnterScreens(
-                    text: "Cadastre de Estoque",
+                    text: "Cadastro de Estoque",
                     onPressed: () => Navigator.pushNamed(context, "/inventoryControl")),
                 ButtonsEnterScreens(
                     text: "Histórico de preços",

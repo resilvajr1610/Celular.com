@@ -8,9 +8,11 @@ class BrandsModel{
 
   BrandsModel();
 
+  BrandsModel.fromSnapshot(DocumentSnapshot snapshot):_brands = snapshot['marcas'];
+
   BrandsModel.fromDocumentSnapshot(DocumentSnapshot documentSnapshot){
     this.id = documentSnapshot.id;
-    this.brands = documentSnapshot["marca"];
+    this.brands = documentSnapshot["marcas"];
   }
 
   BrandsModel.createId(){

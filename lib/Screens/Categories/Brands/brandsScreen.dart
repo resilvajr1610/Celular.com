@@ -18,66 +18,171 @@ class BrandsScreen extends StatefulWidget {
 }
 
 class _BrandsScreenState extends State<BrandsScreen> {
-
   FirebaseFirestore db = FirebaseFirestore.instance;
+  BrandsModel _brandsModel;
   TextEditingController _controllerSerch = TextEditingController();
   TextEditingController _controllerRegister = TextEditingController();
   var _controllerBrands = StreamController<QuerySnapshot>.broadcast();
+  List _allResults = [];
+  List _resultsList = [];
+  Future resultsLoaded;
 
-  Future<Stream<QuerySnapshot>> _addListenerBrands()async{
+  Future<Stream<QuerySnapshot>> _addListenerBrands() async {
+    // Stream<QuerySnapshot> stream = db
+    //     .collection("marcas")
+    //     .snapshots();
+    //
+    // stream.listen((dados) {
+    //   _controllerBrands.add(dados);
+    // });
+  }
 
-    Stream<QuerySnapshot> stream = db
-        .collection("marcas")
-        .snapshots();
+  _data() async {
+    var data = await db.collection("marcaPesquisa").get();
 
-    stream.listen((dados) {
-      _controllerBrands.add(dados);
+    setState(() {
+      _allResults = data.docs;
+    });
+    resultSearchList();
+    return "complete";
+  }
+
+  _search() {
+    resultSearchList();
+  }
+
+  resultSearchList() {
+    var showResults = [];
+
+    if (_controllerSerch.text != "") {
+      for (var items in _allResults) {
+        var brands = BrandsModel.fromSnapshot(items).brands.toLowerCase();
+
+        if (brands.contains(_controllerSerch.text.toLowerCase())) {
+          showResults.add(items);
+        }
+      }
+    } else {
+      showResults = List.from(_allResults);
+    }
+    setState(() {
+      _resultsList = showResults;
     });
   }
 
-  _registerBrands(){
-    db.collection("marcas").doc(_controllerRegister.text).set({
+  _registerBrands() {
+    _brandsModel = BrandsModel.createId();
 
-      "marca"  : _controllerRegister.text,
+    _brandsModel.brands = _controllerRegister.text;
 
-    }).then((value){
-      Navigator.pop(context);
-      _controllerRegister.clear();
-    }
-    );
+    db
+        .collection("marcas")
+        .doc(_brandsModel.brands)
+        .set(_brandsModel.toMap())
+        .then((value) {
+      db
+          .collection('marcaPesquisa')
+          .doc(_brandsModel.id)
+          .set(_brandsModel.toMap())
+          .then((value) {
+        Navigator.pop(context);
+        _controllerRegister.clear();
+        Navigator.pushReplacementNamed(context, "/brands");
+      });
+    });
   }
 
-  _showDialog(){
+  _deleteBrands(String idBrands, String brands) {
+
+    db.collection("marcas")
+      .doc(brands)
+      .delete()
+      .then((_){
+
+      db.collection('marcaPesquisa')
+        .doc(idBrands)
+        .delete()
+        .then((_){
+          Navigator.of(context).pop();
+          Navigator.pushReplacementNamed(context, "/brands");
+      });
+    });
+  }
+
+  _showDialogRegister(String brands) {
     showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (context){
+        builder: (context) {
           return ShowDialogRegister(
             title: 'Cadastrar Marca',
             hint: 'Nova Marca',
             controllerRegister: _controllerRegister,
             list: [
               ButtonsRegister(
-                  onTap: ()=>Navigator.pop(context),
+                  onTap: () => Navigator.pop(context),
                   text: 'Cancelar',
-                  color: PaletteColor.greyButton
-              ),
+                  color: PaletteColor.greyButton),
               Spacer(),
               ButtonsRegister(
-                  onTap:()=>_registerBrands(),
+                  onTap: () => _registerBrands(),
                   text: 'Incluir',
-                  color: PaletteColor.blueButton
-              ),
+                  color: PaletteColor.blueButton),
             ],
           );
-        }
-    );
+        });
+  }
+
+  _showDialogDelete(String idBrands,String brands) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Confirmar"),
+            content: Text("Deseja realmente excluir essa marca?"),
+            actions: <Widget>[
+              FlatButton(
+                child: Text(
+                  "Cancelar",
+                  style: TextStyle(color: Colors.grey),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              FlatButton(
+                color: Colors.red,
+                child: Text(
+                  "Remover",
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: () => _deleteBrands(idBrands,brands),
+              )
+            ],
+          );
+        });
   }
 
   @override
   void initState() {
     super.initState();
-    _addListenerBrands();
+    _brandsModel = BrandsModel();
+    _data();
+    _controllerSerch.addListener(_search);
+    //_addListenerBrands();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controllerSerch.removeListener(_search);
+    _controllerSerch.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    resultsLoaded = _search();
   }
 
   @override
@@ -87,19 +192,8 @@ class _BrandsScreenState extends State<BrandsScreen> {
 
     var loading = Center(
       child: Column(
-        children: [
-          Text('Carregando marcas'),
-          CircularProgressIndicator()
-        ],
+        children: [Text('Carregando marcas'), CircularProgressIndicator()],
       ),
-    );
-
-    var empty = Center(
-      child: Text('Nenhuma marca Cadastrada',
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,fontFamily: 'Arimo',
-        ),),
     );
 
     return Scaffold(
@@ -129,43 +223,32 @@ class _BrandsScreenState extends State<BrandsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   InputSearch(controller: _controllerSerch),
-                  ButtonsAdd(onPressed: ()=> _showDialog())
+                  ButtonsAdd(onPressed: () {
+                    _controllerRegister.clear();
+                    _showDialogRegister(_controllerRegister.text);
+                  })
                 ],
               ),
               Container(
-                height: height*0.5,
+                height: height * 0.5,
                 child: StreamBuilder(
                   stream: _controllerBrands.stream,
-                  builder: (context,snapshot){
+                  builder: (context, snapshot) {
+                    return ListView.separated(
+                        separatorBuilder: (context, index) => DividerList(),
+                        itemCount: _resultsList.length,
+                        itemBuilder: (BuildContext context, index) {
+                          DocumentSnapshot item = _resultsList[index];
 
-                    switch (snapshot.connectionState){
-                      case ConnectionState.none:
-                      case ConnectionState.waiting:
-                        return loading;
-                        break;
-                      case ConnectionState.active:
-                      case ConnectionState.done:
+                          String id        = item["id"];
+                          String brands    = item["marcas"];
 
-                        if(snapshot.hasError)
-                          return Text("Erro ao carregar dados!");
-
-                        QuerySnapshot querySnapshot = snapshot.data;
-                        return ListView.separated(
-                            separatorBuilder: (context, index) => DividerList(),
-                            itemCount: querySnapshot.docs.length,
-                            itemBuilder: (_,index){
-
-                              List<DocumentSnapshot> brands = querySnapshot.docs.toList();
-                              DocumentSnapshot documentSnapshot = brands[index];
-                              BrandsModel brandsModel = BrandsModel.fromDocumentSnapshot(documentSnapshot);
-
-                              return ItemsList(
-                                brandsModel: brandsModel,
-                              );
-                            }
-                        );
-                    }
-                    return Container();
+                          return ItemsList(
+                            brands: brands,
+                            onPressedDelete: () =>
+                                _showDialogDelete(id,brands),
+                          );
+                        });
                   },
                 ),
               ),
