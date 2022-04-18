@@ -3,13 +3,13 @@ import '../Model/export.dart';
 
 class DropdownItens extends StatelessWidget {
 
-  final List<DropdownMenuItem<String>>listItens;
+  final Widget streamBuilder;
   final String selected;
   final dynamic onChanged;
   final double width;
 
   DropdownItens({
-    @required this.listItens,
+    @required this.streamBuilder,
     @required this.onChanged,
     @required this.selected,
     @required this.width
@@ -29,19 +29,7 @@ class DropdownItens extends StatelessWidget {
         margin: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
         width: this.width,
         child: DropdownButtonHideUnderline(
-          child: DropdownButton(
-            iconEnabledColor: PaletteColor.blueButton,
-            iconSize: 40,
-            isExpanded: true,
-            value: this.selected,
-            hint: Text("Selecione",style: TextStyle(fontSize: 15)),
-            style: TextStyle(
-                color: Colors.black,
-                fontSize: 12
-            ),
-            items: this.listItens,
-            onChanged: onChanged,
-          ),
+          child: this.streamBuilder
         ),
       ),
     );

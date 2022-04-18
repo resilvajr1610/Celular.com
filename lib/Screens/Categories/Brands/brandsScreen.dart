@@ -27,16 +27,6 @@ class _BrandsScreenState extends State<BrandsScreen> {
   List _resultsList = [];
   Future resultsLoaded;
 
-  Future<Stream<QuerySnapshot>> _addListenerBrands() async {
-    // Stream<QuerySnapshot> stream = db
-    //     .collection("marcas")
-    //     .snapshots();
-    //
-    // stream.listen((dados) {
-    //   _controllerBrands.add(dados);
-    // });
-  }
-
   _data() async {
     var data = await db.collection("marcaPesquisa").get();
 
@@ -244,7 +234,7 @@ class _BrandsScreenState extends State<BrandsScreen> {
                           String brands    = item["marcas"];
 
                           return ItemsList(
-                            brands: brands,
+                            data: brands,
                             onPressedDelete: () =>
                                 _showDialogDelete(id,brands),
                           );

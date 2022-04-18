@@ -162,20 +162,20 @@ class _PartsResgisterState extends State<PartsResgister> {
                 child: Text('Cadastrar Modelo',
                   style: TextStyle(fontSize: 20,color: PaletteColor.darkGrey),),
               ),
-              DropdownItens(
-                  listItens: _listItensBrands,
-                  onChanged: (valor){
-                    setState(() {
-                      _selectedBrands = valor;
-                    });
-                  }),
-              DropdownItens(
-                  listItens: _listItensParts,
-                  onChanged: (valor){
-                    setState(() {
-                      _selectedParts = valor;
-                    });
-                  }),
+              // DropdownItens(
+              //     listItens: _listItensBrands,
+              //     onChanged: (valor){
+              //       setState(() {
+              //         _selectedBrands = valor;
+              //       });
+              //     }),
+              // DropdownItens(
+              //     listItens: _listItensParts,
+              //     onChanged: (valor){
+              //       setState(() {
+              //         _selectedParts = valor;
+              //       });
+              //     }),
               SizedBox(height: 20),
               Row(
                 children: [

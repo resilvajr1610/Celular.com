@@ -214,38 +214,38 @@ class _OutputState extends State<Output> {
               alignment: Alignment.centerLeft,
               child: InputSearch(controller: _controllerSeach)
             ),
-            DropdownItens(
-                listItens: _listItensBrands,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedBrands = value.toString();
-                  });
-                },
-                selected: _selectedBrands),
-            DropdownItens(
-                listItens: _listItensModels,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedModels = value.toString();
-                  });
-                },
-                selected: _selectedModels),
-            DropdownItens(
-                listItens: _listItensMobiles,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedMobiles = value.toString();
-                  });
-                },
-                selected: _selectedMobiles),
-            DropdownItens(
-                listItens: _listItensParts,
-                onChanged: (value) {
-                  setState(() {
-                    _selectedParts = value.toString();
-                  });
-                },
-                selected: _selectedParts),
+            // DropdownItens(
+            //     listItens: _listItensBrands,
+            //     onChanged: (value) {
+            //       setState(() {
+            //         _selectedBrands = value.toString();
+            //       });
+            //     },
+            //     selected: _selectedBrands),
+            // DropdownItens(
+            //     listItens: _listItensModels,
+            //     onChanged: (value) {
+            //       setState(() {
+            //         _selectedModels = value.toString();
+            //       });
+            //     },
+            //     selected: _selectedModels),
+            // DropdownItens(
+            //     listItens: _listItensMobiles,
+            //     onChanged: (value) {
+            //       setState(() {
+            //         _selectedMobiles = value.toString();
+            //       });
+            //     },
+            //     selected: _selectedMobiles),
+            // DropdownItens(
+            //     listItens: _listItensParts,
+            //     onChanged: (value) {
+            //       setState(() {
+            //         _selectedParts = value.toString();
+            //       });
+            //     },
+            //     selected: _selectedParts),
             GroupStock(
                 title: _selectedParts,
                 fontsTitle: 16,

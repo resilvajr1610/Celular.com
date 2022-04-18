@@ -69,14 +69,14 @@ class GroupStock extends StatelessWidget {
         TextTitle(text: this.title, fonts: fontsTitle),
         showDropDownUp? DropdownItens(
             width: this.width,
-            listItens: this.listItensUp,
+            //listItens: this.listItensUp,
             onChanged: this.onChangedUp,
             selected: this.selectedUp
         ):Container(),
         showDropDownLow?TextTitle(text: this.subtitle, fonts: fontsSubtitle):Container(),
         showDropDownLow? DropdownItens(
             width: this.width,
-            listItens: this.listItensLow,
+            //listItens: this.listItensLow,
             onChanged: this.onChangedLow,
             selected: this.selectedLow
         ):Container(),

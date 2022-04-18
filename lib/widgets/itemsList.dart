@@ -5,12 +5,12 @@ import '../Model/export.dart';
 class ItemsList extends StatelessWidget {
 
   final String item;
-  final String brands;
+  final String data;
   VoidCallback onPressedDelete;
 
 
   ItemsList({
-    this.brands,
+    this.data,
     this.item,
     this.onPressedDelete,
 });
@@ -26,7 +26,7 @@ class ItemsList extends StatelessWidget {
               padding: EdgeInsets.symmetric(vertical: 5),
               alignment: Alignment.centerLeft,
               child: Text(
-                this.brands!=null? this.brands: this.item,
+                this.data!=null? this.data: this.item,
                 textAlign: TextAlign.left,
                 style: TextStyle(
                   fontSize: 20,
