@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../Model/export.dart';
 
 class InputRegister extends StatelessWidget {
@@ -7,12 +8,16 @@ class InputRegister extends StatelessWidget {
   final String hint;
   final double width;
   final double fonts;
+  final TextInputType keyboardType;
+  final List<TextInputFormatter> inputFormatter;
 
   InputRegister({
     @required this.controller,
     @required this.hint,
     @required this.width,
     @required this.fonts,
+    @required this.keyboardType,
+    this.inputFormatter,
 });
 
   @override
@@ -37,8 +42,9 @@ class InputRegister extends StatelessWidget {
       child: TextField(
         controller: this.controller,
         textAlign: TextAlign.center,
-        keyboardType: TextInputType.text,
+        keyboardType: this.keyboardType,
         textAlignVertical: TextAlignVertical.bottom,
+        inputFormatters:this.inputFormatter,
         decoration: InputDecoration(
             border: InputBorder.none,
             hintText: this.hint,

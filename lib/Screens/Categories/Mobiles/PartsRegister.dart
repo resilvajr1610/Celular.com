@@ -29,6 +29,7 @@ class _PartsResgisterState extends State<PartsResgister> {
   final _controllerBrands = StreamController<QuerySnapshot>.broadcast();
   final _controllerColors = StreamController<QuerySnapshot>.broadcast();
   final _controllerDisplay = StreamController<QuerySnapshot>.broadcast();
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
 
   TextEditingController _controllerModel = TextEditingController();
   TextEditingController _controllerRef = TextEditingController();
@@ -58,7 +59,8 @@ class _PartsResgisterState extends State<PartsResgister> {
   bool visibilityScreen18 = false;
   bool visibilityScreen19 = false;
   bool visibilityScreen20 = false;
-  bool _switchProduct = false;
+  bool _switchPCB = false;
+  bool _showCamera = true;
   File photo;
   bool _updatePhoto = false;
   String _urlPhoto;
@@ -105,42 +107,53 @@ class _PartsResgisterState extends State<PartsResgister> {
     return StreamBuilder<QuerySnapshot>(
       stream:_controllerBrands.stream,
       builder: (context,snapshot){
-        if(!snapshot.hasData){
-          Text("Carregando");
-        }else {
-          List<DropdownMenuItem> espItems = [];
-          for (int i = 0; i < snapshot.data.docs.length;i++){
-            DocumentSnapshot snap=snapshot.data.docs[i];
-            espItems.add(
-                DropdownMenuItem(
-                  child: Text(
-                    snap.id,
-                    textAlign: TextAlign.center,
+
+        if(snapshot.hasError)
+          return Text("Erro ao carregar dados!");
+
+        switch (snapshot.connectionState){
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+          case ConnectionState.active:
+          case ConnectionState.done:
+
+          if(!snapshot.hasData){
+            Text("Carregando");
+          }else {
+            List<DropdownMenuItem> espItems = [];
+            for (int i = 0; i < snapshot.data.docs.length; i++) {
+              DocumentSnapshot snap = snapshot.data.docs[i];
+              espItems.add(
+                  DropdownMenuItem(
+                    child: Text(
+                      snap.id,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),
+                    ),
+                    value: "${snap.id}",
+                  )
+              );
+            }
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                DropdownButton(
+                  items: espItems,
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedBrands = value;
+                    });
+                  },
+                  value: _selectedBrands,
+                  isExpanded: false,
+                  hint: new Text(
+                    "Escolha uma marca",
                     style: TextStyle(color: PaletteColor.darkGrey),
                   ),
-                  value: "${snap.id}",
-                )
+                ),
+              ],
             );
           }
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              DropdownButton(
-                items:espItems,
-                onChanged:(value){
-                  setState(() {
-                    _selectedBrands = value;
-                  });
-                },
-                value: _selectedBrands,
-                isExpanded: false,
-                hint: new Text(
-                  "Escolha uma marca",
-                  style: TextStyle(color: PaletteColor.darkGrey ),
-                ),
-              ),
-            ],
-          );
         }
       },
     );
@@ -150,124 +163,178 @@ class _PartsResgisterState extends State<PartsResgister> {
     return StreamBuilder<QuerySnapshot>(
       stream:controller.stream,
       builder: (context,snapshot){
-        if(!snapshot.hasData){
-          Text("Carregando");
-        }else {
-          List<DropdownMenuItem> espItems = [];
-          for (int i = 0; i < snapshot.data.docs.length;i++){
-            DocumentSnapshot snap=snapshot.data.docs[i];
-            espItems.add(
-                DropdownMenuItem(
-                  child: Text(
-                    snap.id,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: PaletteColor.darkGrey),
+
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            break;
+          case ConnectionState.active:
+          case ConnectionState.done:
+
+          if(snapshot.hasError)
+            return Text("Erro ao carregar dados!");
+
+          if(!snapshot.hasData){
+            Text("Carregando");
+          }else {
+            List<DropdownMenuItem> espItems = [];
+            for (int i = 0; i < snapshot.data.docs.length;i++){
+              DocumentSnapshot snap=snapshot.data.docs[i];
+              espItems.add(
+                  DropdownMenuItem(
+                    child: Text(
+                      snap.id,
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),
+                    ),
+                    value: "${snap.id}",
+                  )
+              );
+            }
+            return Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                DropdownButton(
+                  items:espItems,
+                  onChanged:(value){
+                    setState(() {
+                      _selectedUp = value;
+                    });
+                  },
+                  value: _selectedUp,
+                  isExpanded: false,
+                  hint: new Text(
+                    "Selecione",
+                    style: TextStyle(color: PaletteColor.darkGrey ),
                   ),
-                  value: "${snap.id}",
-                )
+                ),
+              ],
             );
           }
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              DropdownButton(
-                items:espItems,
-                onChanged:(value){
-                  setState(() {
-                    _selectedUp = value;
-                  });
-                },
-                value: _selectedUp,
-                isExpanded: false,
-                hint: new Text(
-                  "Selecione",
-                  style: TextStyle(color: PaletteColor.darkGrey ),
-                ),
-              ),
-            ],
-          );
+
         }
       },
     );
   }
 
   Widget streamLow(final controller) {
+
+    _addListenerColors();
+
     return StreamBuilder<QuerySnapshot>(
       stream:controller.stream,
-      builder: (context,snapshot){
-        if(!snapshot.hasData){
-          Text("Carregando");
-        }else {
-          List<DropdownMenuItem> espItems = [];
-          for (int i = 0; i < snapshot.data.docs.length;i++){
-            DocumentSnapshot snap=snapshot.data.docs[i];
-            espItems.add(
-                DropdownMenuItem(
-                  child: Text(
-                    snap.id,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: PaletteColor.darkGrey),
+      builder: (context,snapshot) {
+
+        if(snapshot.hasError)
+          return Text("Erro ao carregar dados!");
+
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+          case ConnectionState.active:
+          case ConnectionState.done:
+            if (!snapshot.hasData) {
+              Text("Carregando");
+            } else {
+              List<DropdownMenuItem> espItems = [];
+              for (int i = 0; i < snapshot.data.docs.length; i++) {
+                DocumentSnapshot snap = snapshot.data.docs[i];
+                espItems.add(
+                    DropdownMenuItem(
+                      child: Text(
+                        snap.id ?? "",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: PaletteColor.darkGrey),
+                      ),
+                      value: "${snap.id ?? ""}",
+                    )
+                );
+              }
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  DropdownButton(
+                    items: espItems,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedLow = value;
+                      });
+                    },
+                    value: _selectedLow,
+                    isExpanded: false,
+                    hint: new Text(
+                      "Selecione",
+                      style: TextStyle(color: PaletteColor.darkGrey),
+                    ),
                   ),
-                  value: "${snap.id}",
-                )
-            );
-          }
-          return Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              DropdownButton(
-                items:espItems,
-                onChanged:(value){
-                  setState(() {
-                    _selectedLow = value;
-                  });
-                },
-                value: _selectedLow,
-                isExpanded: false,
-                hint: new Text(
-                  "Selecione",
-                  style: TextStyle(color: PaletteColor.darkGrey ),
-                ),
-              ),
-            ],
-          );
+                ],
+              );
+            }
         }
-      },
+      }
     );
   }
 
   Future _savePhoto(String namePhoto)async{
-    try{
-      final image = await ImagePicker().pickImage(source: ImageSource.camera);
-      if(image ==null)return;
+    setState(() {
+      _showCamera=false;
+    });
+    if(namePhoto!=null && namePhoto!="" && _selectedBrands!=null && _selectedBrands!=""){
+      try{
+        final image = await ImagePicker().pickImage(source: ImageSource.camera,imageQuality: 50);
+        if(image ==null)return;
 
-      final imageTemporary = File(image.path);
-      setState(() {
-        this.photo = imageTemporary;
+        final imageTemporary = File(image.path);
         setState(() {
-          _updatePhoto=true;
+          this.photo = imageTemporary;
+          setState(() {
+            _updatePhoto=true;
+          });
+          _uploadImage(namePhoto);
         });
-        _uploadImage(namePhoto);
-      });
-    } on PlatformException catch (e){
-      print('Error : $e');
+      } on PlatformException catch (e){
+        print('Error : $e');
+      }
+    }else{
+        String text = 'Preencha os dados marca, modelo e referência para continuar';
+        showSnackBar(context,text);
     }
   }
+
+  void showSnackBar(BuildContext context, String text){
+    final snackbar = SnackBar(
+        backgroundColor: Colors.red,
+        content: Row(
+          children: [
+            Icon(Icons.info_outline,color: Colors.white),
+            SizedBox(width: 20),
+            Expanded(
+              child: Text(text,
+                style: TextStyle(fontSize: 16),),
+            ),
+          ],
+        ),
+    );
+
+    _scaffoldKey.currentState.showSnackBar(snackbar);
+  }
+
   Future _uploadImage(String namePhoto)async{
     Reference pastaRaiz = storage.ref();
     Reference arquivo = pastaRaiz
         .child("celulares")
-        .child(namePhoto + ".jpg");
+        .child(_selectedBrands+"_"+namePhoto + ".jpg");
 
     UploadTask task = arquivo.putFile(photo);
 
-    Future.delayed(const Duration(seconds: 3),()async{
+    Future.delayed(const Duration(seconds: 6),()async{
       String urlImage = await task.snapshot.ref.getDownloadURL();
       if(urlImage!=null){
         _urlImageFirestore(urlImage,namePhoto);
         setState(() {
           _urlPhoto = urlImage;
           _updatePhoto=false;
+          _showCamera=true;
         });
       }
     });
@@ -276,11 +343,65 @@ class _PartsResgisterState extends State<PartsResgister> {
   _urlImageFirestore(String url, String namePhoto){
 
     Map<String,dynamic> dateUpdate = {
-      namePhoto : url
+      "foto" : url
     };
 
     db.collection("celulares")
+        .doc(_selectedBrands)
+        .collection(_controllerModel.text)
         .doc(namePhoto)
+        .set(dateUpdate);
+  }
+
+  _registerDatabase(String part){
+
+    Map<String,dynamic> dateUpdate = {
+      "selecionado1" : _selectedUp,
+      "selecionado2" : _selectedLow,
+      "estoque" : _controllerStock.text,
+      "estoqueMinimo" : _controllerStockMin.text,
+      "precoCompra" : _controllerPricePuschace.text,
+      "precoVenda" : _controllerPriceSale.text,
+      "referencia" : _controllerRef.text,
+      "peca" : part,
+      "marca": _selectedBrands
+    };
+
+    db.collection("celulares")
+        .doc(_selectedBrands)
+        .collection(_controllerModel.text)
+        .doc(part)
+        .update(dateUpdate).then((_){
+          _controllerStock.clear();
+          _controllerStockMin.clear();
+          _controllerPricePuschace.clear();
+          _controllerPriceSale.clear();
+    });
+  }
+
+  _registerPCB(String part){
+
+    Map<String,dynamic> dateUpdate = {
+      "PCB" : _switchPCB?"sim":"não",
+    };
+
+    db.collection("celulares")
+        .doc(_selectedBrands)
+        .collection(_controllerModel.text)
+        .doc(part)
+        .set(dateUpdate);
+  }
+
+  _registerBattery(String part){
+
+    Map<String,dynamic> dateUpdate = {
+      "codBateria" : _controllerCodBattery.text,
+    };
+
+    db.collection("celulares")
+        .doc(_selectedBrands)
+        .collection(_controllerModel.text)
+        .doc(part)
         .update(dateUpdate);
   }
 
@@ -296,6 +417,7 @@ class _PartsResgisterState extends State<PartsResgister> {
   Widget build(BuildContext context) {
     double width = MediaQuery.of(context).size.width;
     return Scaffold(
+      key: _scaffoldKey,
       backgroundColor: PaletteColor.white,
       appBar: AppBar(
         centerTitle: true,
@@ -339,22 +461,65 @@ class _PartsResgisterState extends State<PartsResgister> {
                     width: width*0.6,
                     child: Column(
                       children: [
-                        InputRegister(controller: _controllerModel, hint: 'Modelo',width: width*0.5,fonts: 20),
-                        InputRegister(controller: _controllerRef, hint: 'Referências',width: width*0.5,fonts: 20),
+                        InputRegister(keyboardType: TextInputType.text, controller: _controllerModel, hint: 'Modelo',width: width*0.5,fonts: 20),
+                        InputRegister(keyboardType: TextInputType.text, controller: _controllerRef, hint: 'Referências',width: width*0.5,fonts: 20),
                       ],
                     ),
                   ),
-                  ButtonCamera(
-                      onTap: ()=>{},
+                  _urlPhoto!=null?_updatePhoto?Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(color: PaletteColor.darkGrey),
+                      Text('Aguarde',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: PaletteColor.darkGrey),),
+                    ],
+                  ):Column(
+                    children: [
+                      Icon(Icons.check_circle_outline,color: Colors.green,),
+                      Text('Foto enviada!',style: TextStyle(color: Colors.green),)
+                    ],
+                  ):ButtonCamera(
+                      onTap: ()=> _savePhoto(_controllerModel.text),
                       width: width*0.3
                   )
                 ],
               ),
-              Visibility(
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
                 visible: visibilityScreen1,
                   child: Column(
                     children: [
                       ButtonsAdd(onPressed: (){}),
+                      Row(
+                        children: [
+                          TextTitle(text: 'PCB', fonts: fonts),
+                          SizedBox(width: 20),
+                          TextTitle(text: 'Não', fonts: 14),
+                          Switch(
+                              activeColor: PaletteColor.blueButton,
+                              value: _switchPCB,
+                              onChanged: (bool value){
+                                setState(() {
+                                  _switchPCB = value;
+                                });
+                              }
+                          ),
+                          TextTitle(text: 'Sim', fonts: 14),
+                        ],
+                      ),
                       GroupStock(
                           title: 'Display',
                           subtitle: 'Cor',
@@ -384,7 +549,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                           controllerPriceSale: _controllerPriceSale,
                           controllerStock: _controllerStock,
                           controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=> _savePhoto(_controllerModel.text),
+                          onTapCamera: ()=> _savePhoto('Display'),
                           showStockmin: true,
                           showPrice: true,
                           titlePrice: 'Preço Venda',
@@ -395,774 +560,1301 @@ class _PartsResgisterState extends State<PartsResgister> {
                           text: "Próximo",
                           color: PaletteColor.blueButton,
                           onTap: (){
-                            setState(() {
-                              visibilityScreen1=false;
-                              visibilityScreen2=true;
-                            });
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                            && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                            && _controllerStock.text!="" && _controllerStock.text !=null
+                            && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                            && _selectedUp!="" &&_selectedUp !=null
+                            && _selectedLow!="" &&_selectedLow !=null
+                            && _controllerRef.text!="" &&_controllerRef.text !=null
+                            && _selectedBrands!="" && _selectedBrands!=null
+                            && _selectedUp!="" && _selectedUp!=null
+                            && _selectedLow!="" && _selectedLow!=null
+                            && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Display');
+                              _registerPCB('PCB');
+                              setState(() {
+                                visibilityScreen1=false;
+                                visibilityScreen2=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
                           }
                       ),
                     ],
                   )
               ),
-              // Visibility(
-              //   visible: visibilityScreen2,
-              //     child: Column(
-              //       children: [
-              //         GroupStock(
-              //             title: 'Película 3D',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: false,
-              //             onChangedUp: (value){
-              //               setState(() {
-              //                 _selectedDisplay = value.toString();
-              //               });
-              //             },
-              //             onChangedLow: (value){
-              //               setState(() {
-              //                 _selectedColors = value.toString();
-              //               });
-              //             },
-              //             selectedUp: _selectedDisplay,
-              //             selectedLow: _selectedColors,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen2=false;
-              //                 visibilityScreen3=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen3,
-              //     child: Column(
-              //       children: [
-              //         GroupStock(
-              //             title: 'Película 3D Privativa',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: false,
-              //             onChangedUp: (value){
-              //               setState(() {
-              //                 _selectedDisplay = value.toString();
-              //               });
-              //             },
-              //             onChangedLow: (value){
-              //               setState(() {
-              //                 _selectedColors = value.toString();
-              //               });
-              //             },
-              //             selectedUp: _selectedDisplay,
-              //             selectedLow: _selectedColors,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen3=false;
-              //                 visibilityScreen4=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen4,
-              //     child: Column(
-              //       children: [
-              //         GroupStock(
-              //             title: 'Película de Vidro',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: false,
-              //             onChangedUp: (value){
-              //               setState(() {
-              //                 _selectedDisplay = value.toString();
-              //               });
-              //             },
-              //             onChangedLow: (value){
-              //               setState(() {
-              //                 _selectedColors = value.toString();
-              //               });
-              //             },
-              //             selectedUp: _selectedDisplay,
-              //             selectedLow: _selectedColors,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen4=false;
-              //                 visibilityScreen5=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen5,
-              //     child: Column(
-              //       children: [
-              //         GroupStock(
-              //             title: 'Case Original',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: false,
-              //             onChangedUp: (value){
-              //               setState(() {
-              //                 _selectedDisplay = value.toString();
-              //               });
-              //             },
-              //             onChangedLow: (value){
-              //               setState(() {
-              //                 _selectedColors = value.toString();
-              //               });
-              //             },
-              //             selectedUp: _selectedDisplay,
-              //             selectedLow: _selectedColors,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen5=false;
-              //                 visibilityScreen6=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen6,
-              //     child: Column(
-              //       children: [
-              //         GroupStock(
-              //             title: 'Case TPU',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: false,
-              //             onChangedUp: (value){
-              //               setState(() {
-              //                 _selectedDisplay = value.toString();
-              //               });
-              //             },
-              //             onChangedLow: (value){
-              //               setState(() {
-              //                 _selectedColors = value.toString();
-              //               });
-              //             },
-              //             selectedUp: _selectedDisplay,
-              //             selectedLow: _selectedColors,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen6=false;
-              //                 visibilityScreen7=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen7,
-              //     child: Column(
-              //       children: [
-              //         ButtonsAdd(onPressed: (){}),
-              //         GroupStock(
-              //             title: 'Cores de Tampa',
-              //             subtitle: 'Cor',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             listItensLow: _listItensColors,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: true,
-              //             onChangedLow: (value){
-              //               setState(() {
-              //                 _selectedColors = value.toString();
-              //               });
-              //             },
-              //             selectedLow: _selectedColors,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen7=false;
-              //                 visibilityScreen8=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen8,
-              //     child: Column(
-              //       children: [
-              //         ButtonsAdd(onPressed: (){}),
-              //         GroupStock(
-              //             title: 'Cores de Chassi',
-              //             subtitle: 'Cor',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             listItensLow: _listItensColors,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: true,
-              //             onChangedLow: (value){
-              //               setState(() {
-              //                 _selectedColors = value.toString();
-              //               });
-              //             },
-              //             selectedLow: _selectedColors,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen8=false;
-              //                 visibilityScreen9=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen9,
-              //     child: Column(
-              //       children: [
-              //         GroupStock(
-              //             title: 'Conector de Carga',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             listItensLow: _listItensColors,
-              //             showDropDownUp: false,
-              //             showDropDownLow: false,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showCod: false,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen9=false;
-              //                 visibilityScreen10=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen10,
-              //     child: Column(
-              //       children: [
-              //         GroupStock(
-              //             title: 'Dock de Carga',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: false,
-              //             controllerCod: _controllerCodBattery,
-              //             listItensLow: _listItensColors,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen10=false;
-              //                 visibilityScreen11=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen11,
-              //     child: Column(
-              //       children: [
-              //         GroupStock(
-              //             title: 'Bateria',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             showCod: true,
-              //             showDropDownUp: false,
-              //             showDropDownLow: false,
-              //             controllerCod: _controllerCodBattery,
-              //             listItensLow: _listItensColors,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen11=false;
-              //                 visibilityScreen12=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen12,
-              //     child: Column(
-              //       children: [
-              //         GroupStock(
-              //             title: 'Flex Power',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: false,
-              //             controllerCod: _controllerCodBattery,
-              //             listItensLow: _listItensColors,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen12=false;
-              //                 visibilityScreen13=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen13,
-              //     child: Column(
-              //       children: [
-              //         GroupStock(
-              //             title: 'Digital',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: false,
-              //             controllerCod: _controllerCodBattery,
-              //             listItensLow: _listItensColors,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen13=false;
-              //                 visibilityScreen14=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen14,
-              //     child: Column(
-              //       children: [
-              //         GroupStock(
-              //             title: 'Lente de Câmera',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: false,
-              //             controllerCod: _controllerCodBattery,
-              //             listItensLow: _listItensColors,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen14=false;
-              //                 visibilityScreen15=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen15,
-              //     child: Column(
-              //       children: [
-              //         ButtonsAdd(onPressed: (){}),
-              //         GroupStock(
-              //             title: 'Gaveta do chip',
-              //             subtitle: 'Cor',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: true,
-              //             onChangedLow: (value){
-              //               setState(() {
-              //                 _selectedColors = value.toString();
-              //               });
-              //             },
-              //             selectedLow: _selectedColors,
-              //             controllerCod: _controllerCodBattery,
-              //             listItensLow: _listItensColors,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen15=false;
-              //                 visibilityScreen16=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen16,
-              //     child: Column(
-              //       children: [
-              //         GroupStock(
-              //             title: 'Câmera Frontal',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: false,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen16=false;
-              //                 visibilityScreen17=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen17,
-              //     child: Column(
-              //       children: [
-              //         GroupStock(
-              //             title: 'Câmera Traseira',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: false,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen17=false;
-              //                 visibilityScreen18=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen18,
-              //     child: Column(
-              //       children: [
-              //         GroupStock(
-              //             title: 'Falante Auricular',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: false,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen18=false;
-              //                 visibilityScreen19=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen19,
-              //     child: Column(
-              //       children: [
-              //         GroupStock(
-              //             title: 'Campainha',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: false,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Próximo",
-              //             color: PaletteColor.blueButton,
-              //             onTap: (){
-              //               setState(() {
-              //                 visibilityScreen19=false;
-              //                 visibilityScreen20=true;
-              //               });
-              //             }
-              //         ),
-              //       ],
-              //     )
-              // ),
-              // Visibility(
-              //     visible: visibilityScreen20,
-              //     child: Column(
-              //       children: [
-              //         GroupStock(
-              //             title: 'Flex Sub Placa',
-              //             fontsTitle: 16,
-              //             width: width*0.5,
-              //             showCod: false,
-              //             showDropDownUp: false,
-              //             showDropDownLow: false,
-              //             controllerPricePuschace: _controllerPricePuschace,
-              //             controllerPriceSale: _controllerPriceSale,
-              //             controllerStock: _controllerStock,
-              //             controllerStockMin: _controllerStockMin,
-              //             onTapCamera: ()=>{},
-              //             showStockmin: true,
-              //             showPrice: true,
-              //             titlePrice: 'Preço Venda',
-              //             showCamera: true
-              //         ),
-              //         SizedBox(height: 10),
-              //         ButtonsRegister(
-              //             text: "Finalizar",
-              //             color: PaletteColor.blueButton,
-              //             onTap: ()=> Navigator.pushNamed(context, "/parts")
-              //         ),
-              //       ],
-              //     )
-              // ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                visible: visibilityScreen2,
+                  child: Column(
+                    children: [
+                      GroupStock(
+                          title: 'Película 3D',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: false,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Película 3D'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Película 3D');
+                              setState(() {
+                                visibilityScreen2=false;
+                                visibilityScreen3=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen3,
+                  child: Column(
+                    children: [
+                      GroupStock(
+                          title: 'Película 3D Privativa',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: false,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Película 3D Privativa'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              setState(() {
+                                _registerDatabase('Película 3D Privativa');
+                                visibilityScreen3=false;
+                                visibilityScreen4=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen4,
+                  child: Column(
+                    children: [
+                      GroupStock(
+                          title: 'Película de Vidro',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: false,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Película de Vidro'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: _showCamera
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Película de Vidro');
+                              setState(() {
+                                visibilityScreen4=false;
+                                visibilityScreen5=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen5,
+                  child: Column(
+                    children: [
+                      GroupStock(
+                          title: 'Case Original',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: false,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Case Original'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              setState((){
+                                _registerDatabase('Case Original');
+                                visibilityScreen5=false;
+                                visibilityScreen6=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen6,
+                  child: Column(
+                    children: [
+                      GroupStock(
+                          title: 'Case TPU',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: false,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Case TPU'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Case TPU');
+                              setState(() {
+                                visibilityScreen6=false;
+                                visibilityScreen7=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen7,
+                  child: Column(
+                    children: [
+                      ButtonsAdd(onPressed: (){}),
+                      GroupStock(
+                          title: 'Cores de Tampa',
+                          subtitle: 'Cor',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          streamBuilderLow: streamLow(_controllerColors),
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: true,
+                          onChangedLow: (value){
+                            setState(() {
+                              _selectedLow = value.toString();
+                            });
+                          },
+                          selectedLow: _selectedLow,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Cores de Tampa'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Cores de Tampa');
+                              setState(() {
+                                visibilityScreen7=false;
+                                visibilityScreen8=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen8,
+                  child: Column(
+                    children: [
+                      ButtonsAdd(onPressed: (){}),
+                      GroupStock(
+                          title: 'Cores de Chassi',
+                          subtitle: 'Cor',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          streamBuilderLow: streamLow(_controllerColors),
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: true,
+                          onChangedLow: (value){
+                            setState(() {
+                              _selectedLow = value.toString();
+                            });
+                          },
+                          selectedLow: _selectedLow,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Cores de Chassi'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Cores de Chassi');
+                              setState(() {
+                                visibilityScreen8=false;
+                                visibilityScreen9=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen9,
+                  child: Column(
+                    children: [
+                      GroupStock(
+                          title: 'Conector de Carga',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showDropDownUp: false,
+                          showDropDownLow: false,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Conector de Carga'),
+                          showStockmin: true,
+                          showCod: false,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Conector de Carga');
+                              setState(() {
+                                visibilityScreen9=false;
+                                visibilityScreen10=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen10,
+                  child: Column(
+                    children: [
+                      GroupStock(
+                          title: 'Dock de Carga',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: false,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Dock de Carga'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Dock de Carga');
+                              setState(() {
+                                visibilityScreen10=false;
+                                visibilityScreen11=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen11,
+                  child: Column(
+                    children: [
+                      GroupStock(
+                          title: 'Bateria',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showCod: true,
+                          showDropDownUp: false,
+                          showDropDownLow: false,
+                          controllerCod: _controllerCodBattery,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Bateria'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                                && _controllerCodBattery.text!="" &&_controllerCodBattery.text !=null
+                            ){
+                              _registerDatabase('Bateria');
+                              _registerBattery('Bateria');
+
+                              setState(() {
+                                visibilityScreen11=false;
+                                visibilityScreen12=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen12,
+                  child: Column(
+                    children: [
+                      GroupStock(
+                          title: 'Flex Power',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: false,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Flex Power'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Flex Power');
+                              setState(() {
+                                visibilityScreen12=false;
+                                visibilityScreen13=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen13,
+                  child: Column(
+                    children: [
+                      GroupStock(
+                          title: 'Digital',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: false,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Digital'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Digital');
+                              setState(() {
+                                visibilityScreen13=false;
+                                visibilityScreen14=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen14,
+                  child: Column(
+                    children: [
+                      GroupStock(
+                          title: 'Lente da Câmera',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: false,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Lente da Câmera'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Lente da câmera');
+                              setState(() {
+                                visibilityScreen14=false;
+                                visibilityScreen15=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen15,
+                  child: Column(
+                    children: [
+                      ButtonsAdd(onPressed: (){}),
+                      GroupStock(
+                          title: 'Gaveta do chip',
+                          subtitle: 'Cor',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: true,
+                          onChangedLow: (value){
+                            setState(() {
+                              _selectedLow = value.toString();
+                            });
+                          },
+                          selectedLow: _selectedLow,
+                          streamBuilderLow: streamLow(_controllerColors),
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Gaveta do chip'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Gaveta do chip');
+                              setState(() {
+                                visibilityScreen15=false;
+                                visibilityScreen16=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen16,
+                  child: Column(
+                    children: [
+                      GroupStock(
+                          title: 'Câmera Frontal',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: false,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Câmera Frontal'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Câmera Frontal');
+                              setState(() {
+                                visibilityScreen16=false;
+                                visibilityScreen17=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen17,
+                  child: Column(
+                    children: [
+                      GroupStock(
+                          title: 'Câmera Traseira',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: false,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Câmera Traseira'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Câmera Traseira');
+                              setState(() {
+                                visibilityScreen17=false;
+                                visibilityScreen18=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen18,
+                  child: Column(
+                    children: [
+                      GroupStock(
+                          title: 'Falante Auricular',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: false,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Falante Auricular'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Falante Auricular');
+                              setState(() {
+                                visibilityScreen18=false;
+                                visibilityScreen19=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen19,
+                  child: Column(
+                    children: [
+                      GroupStock(
+                          title: 'Campainha',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: false,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Campainha'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Próximo",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Campainha');
+                              setState(() {
+                                visibilityScreen19=false;
+                                visibilityScreen20=true;
+                              });
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
+              _updatePhoto?Container(
+                alignment: Alignment.center,
+                height: 200,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(color: PaletteColor.darkGrey),
+                    Text('Aguarde',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey),),
+                  ],
+                ),
+              ):Visibility(
+                  visible: visibilityScreen20,
+                  child: Column(
+                    children: [
+                      GroupStock(
+                          title: 'Flex Sub Placa',
+                          fontsTitle: 16,
+                          width: width*0.5,
+                          showCod: false,
+                          showDropDownUp: false,
+                          showDropDownLow: false,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=>_savePhoto('Flex Sub Placa'),
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      SizedBox(height: 10),
+                      ButtonsRegister(
+                          text: "Finalizar",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Flex Sub Placa');
+                              Navigator.pushReplacementNamed(context, "/mobiles");
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
+                    ],
+                  )
+              ),
             ],
           ),
         ),

@@ -25,7 +25,7 @@ class ShowDialogRegister extends StatelessWidget {
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          InputRegister(controller: this.controllerRegister, hint: this.hint,fonts: 20)
+          InputRegister(keyboardType: TextInputType.text, controller: this.controllerRegister, hint: this.hint,fonts: 20)
         ],
       ),
       contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),

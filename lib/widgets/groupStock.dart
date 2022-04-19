@@ -1,6 +1,8 @@
+import 'package:brasil_fields/formatter/real_input_formatter.dart';
 import 'package:celular/widgets/dropDownItens.dart';
 import 'package:celular/widgets/textTitle.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'buttonCamera.dart';
 import 'inputRegister.dart';
 
@@ -83,6 +85,7 @@ class GroupStock extends StatelessWidget {
         ):Container(),
         showCod?TextTitle(text: 'Código', fonts: fontsSubtitle):Container(),
         showCod? InputRegister(
+          keyboardType: TextInputType.number,
           controller: this.controllerCod,
           hint: '0000000',
           width: width*0.5,
@@ -95,6 +98,7 @@ class GroupStock extends StatelessWidget {
               children: [
                 TextTitle(text: 'Estoque',fonts: 14),
                 InputRegister(
+                  keyboardType: TextInputType.number,
                   controller: this.controllerStock,
                   hint: '01',
                   width: width*0.2,
@@ -102,6 +106,11 @@ class GroupStock extends StatelessWidget {
                 ),
                 showPrice?TextTitle(text: 'Preço Compra',fonts: 14):Container(),
                 showPrice?InputRegister(
+                  keyboardType: TextInputType.number,
+                  inputFormatter: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    RealInputFormatter(centavos: true)
+                  ],
                   controller: this.controllerPricePuschace,
                   hint: 'R\$ 00,00',
                   width: width*0.3,
@@ -114,6 +123,7 @@ class GroupStock extends StatelessWidget {
               children: [
                 showStockmin? TextTitle(text: 'Estoque mínimo',fonts: 14):Container(),
                 showStockmin? InputRegister(
+                  keyboardType: TextInputType.number,
                   controller: this.controllerStockMin,
                   hint: '01',
                   width: width*0.2,
@@ -121,6 +131,11 @@ class GroupStock extends StatelessWidget {
                 ):Container(),
                 TextTitle(text: this.titlePrice,fonts: 14),
                 InputRegister(
+                  keyboardType: TextInputType.number,
+                  inputFormatter: [
+                    FilteringTextInputFormatter.digitsOnly,
+                    RealInputFormatter(centavos: true)
+                  ],
                   controller: this.controllerPriceSale,
                   hint: 'R\$ 00,00',
                   width: width*0.3,

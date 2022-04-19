@@ -159,7 +159,6 @@ class _BrandsScreenState extends State<BrandsScreen> {
     _brandsModel = BrandsModel();
     _data();
     _controllerSerch.addListener(_search);
-    //_addListenerBrands();
   }
 
   @override
