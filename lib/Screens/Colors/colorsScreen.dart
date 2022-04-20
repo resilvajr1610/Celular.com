@@ -1,9 +1,7 @@
 import 'dart:async';
-
 import 'package:celular/widgets/buttonsAdd.dart';
 import 'package:celular/widgets/buttonsRegister.dart';
 import 'package:celular/widgets/dividerList.dart';
-import 'package:celular/widgets/inputRegister.dart';
 import 'package:celular/widgets/inputSearch.dart';
 import 'package:celular/widgets/itemsList.dart';
 import 'package:celular/widgets/showDialogRegister.dart';
@@ -23,7 +21,7 @@ class _ColorsScreenState extends State<ColorsScreen> {
 
   ColorsModel _colorsModel;
   FirebaseFirestore db = FirebaseFirestore.instance;
-  TextEditingController _controllerSerch = TextEditingController();
+  TextEditingController _controllerSearch = TextEditingController();
   TextEditingController _controllerRegister = TextEditingController();
   var _controllerColors = StreamController<QuerySnapshot>.broadcast();
   List _allResults = [];
@@ -47,11 +45,11 @@ class _ColorsScreenState extends State<ColorsScreen> {
   resultSearchList() {
     var showResults = [];
 
-    if (_controllerSerch.text != "") {
+    if (_controllerSearch.text != "") {
       for (var items in _allResults) {
         var brands = ColorsModel.fromSnapshot(items).color.toLowerCase();
 
-        if (brands.contains(_controllerSerch.text.toLowerCase())) {
+        if (brands.contains(_controllerSearch.text.toLowerCase())) {
           showResults.add(items);
         }
       }
@@ -161,15 +159,14 @@ class _ColorsScreenState extends State<ColorsScreen> {
     super.initState();
     _colorsModel = ColorsModel();
     _data();
-    _controllerSerch.addListener(_search);
-    //_addListenerBrands();
+    _controllerSearch.addListener(_search);
   }
 
   @override
   void dispose() {
     super.dispose();
-    _controllerSerch.removeListener(_search);
-    _controllerSerch.dispose();
+    _controllerSearch.removeListener(_search);
+    _controllerSearch.dispose();
   }
 
   @override
@@ -208,7 +205,7 @@ class _ColorsScreenState extends State<ColorsScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  InputSearch(controller: _controllerSerch),
+                  InputSearch(controller: _controllerSearch),
                   ButtonsAdd(onPressed: (){
                     _controllerRegister.clear();
                     _showDialogRegister(_controllerRegister.text);
@@ -230,6 +227,7 @@ class _ColorsScreenState extends State<ColorsScreen> {
                           String color    = item["cor"];
 
                           return ItemsList(
+                            showDelete: true,
                             data: color,
                             onPressedDelete: () =>
                                 _showDialogDelete(id,color),

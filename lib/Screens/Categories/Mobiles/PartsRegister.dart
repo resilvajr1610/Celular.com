@@ -1,7 +1,8 @@
 import 'dart:async';
 import 'dart:io';
+import 'package:celular/Model/MobilesModel.dart';
+import 'package:celular/Model/PartsModel.dart';
 import 'package:celular/widgets/buttonCamera.dart';
-import 'package:celular/widgets/buttonsAdd.dart';
 import 'package:celular/widgets/buttonsRegister.dart';
 import 'package:celular/widgets/groupStock.dart';
 import 'package:celular/widgets/inputRegister.dart';
@@ -30,7 +31,8 @@ class _PartsResgisterState extends State<PartsResgister> {
   final _controllerColors = StreamController<QuerySnapshot>.broadcast();
   final _controllerDisplay = StreamController<QuerySnapshot>.broadcast();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-
+  MobilesModel _mobilesModel;
+  PartsModel _partsModel;
   TextEditingController _controllerModel = TextEditingController();
   TextEditingController _controllerRef = TextEditingController();
   TextEditingController _controllerStock = TextEditingController();
@@ -64,7 +66,6 @@ class _PartsResgisterState extends State<PartsResgister> {
   File photo;
   bool _updatePhoto = false;
   String _urlPhoto;
-
   String _selectedBrands;
   String _selectedUp;
   String _selectedLow;
@@ -160,6 +161,9 @@ class _PartsResgisterState extends State<PartsResgister> {
   }
 
   Widget streamUp(final controller) {
+
+    _addListenerDisplay();
+
     return StreamBuilder<QuerySnapshot>(
       stream:controller.stream,
       builder: (context,snapshot){
@@ -322,7 +326,7 @@ class _PartsResgisterState extends State<PartsResgister> {
   Future _uploadImage(String namePhoto)async{
     Reference pastaRaiz = storage.ref();
     Reference arquivo = pastaRaiz
-        .child("celulares")
+        .child("pecas")
         .child(_selectedBrands+"_"+namePhoto + ".jpg");
 
     UploadTask task = arquivo.putFile(photo);
@@ -342,14 +346,16 @@ class _PartsResgisterState extends State<PartsResgister> {
 
   _urlImageFirestore(String url, String namePhoto){
 
+    _partsModel = PartsModel.createId();
+
     Map<String,dynamic> dateUpdate = {
-      "foto" : url
+      "foto" : url,
+      "item":_selectedBrands+"_"+_controllerModel.text+"_"+namePhoto,
+      "id" : _partsModel.id,
     };
 
-    db.collection("celulares")
-        .doc(_selectedBrands)
-        .collection(_controllerModel.text)
-        .doc(namePhoto)
+    db.collection("pecas")
+        .doc(_partsModel.id)
         .set(dateUpdate);
   }
 
@@ -364,31 +370,44 @@ class _PartsResgisterState extends State<PartsResgister> {
       "precoVenda" : _controllerPriceSale.text,
       "referencia" : _controllerRef.text,
       "peca" : part,
-      "marca": _selectedBrands
+      "marca": _selectedBrands,
+      "item":_selectedBrands+"_"+_controllerModel.text+"_"+part
     };
 
-    db.collection("celulares")
-        .doc(_selectedBrands)
-        .collection(_controllerModel.text)
-        .doc(part)
+    db.collection("pecas")
+        .doc(_partsModel.id)
         .update(dateUpdate).then((_){
-          _controllerStock.clear();
-          _controllerStockMin.clear();
-          _controllerPricePuschace.clear();
-          _controllerPriceSale.clear();
+          db.collection('celulares')
+            .doc(_controllerModel.text)
+            .set({
+            "celular":_controllerModel.text,
+            "marca":_selectedBrands
+          }).then((value){
+            _controllerStock.clear();
+            _controllerStockMin.clear();
+            _controllerPricePuschace.clear();
+            _controllerPriceSale.clear();
+          });
     });
   }
 
   _registerPCB(String part){
 
+    _mobilesModel = MobilesModel.createId();
+
+    _mobilesModel.mobiles = _controllerModel.text;
+    _mobilesModel.brands = _selectedBrands;
+
+    db.collection('celularPesquisa')
+      .doc(_mobilesModel.id)
+      .set(_mobilesModel.toMap());
+
     Map<String,dynamic> dateUpdate = {
       "PCB" : _switchPCB?"sim":"não",
     };
 
-    db.collection("celulares")
-        .doc(_selectedBrands)
-        .collection(_controllerModel.text)
-        .doc(part)
+    db.collection("pecas")
+        .doc(_partsModel.id)
         .set(dateUpdate);
   }
 
@@ -411,6 +430,8 @@ class _PartsResgisterState extends State<PartsResgister> {
     _addListenerBrands();
     _addListenerColors();
     _addListenerDisplay();
+    _partsModel = PartsModel();
+    _mobilesModel = MobilesModel();
   }
 
   @override
@@ -502,7 +523,6 @@ class _PartsResgisterState extends State<PartsResgister> {
                 visible: visibilityScreen1,
                   child: Column(
                     children: [
-                      ButtonsAdd(onPressed: (){}),
                       Row(
                         children: [
                           TextTitle(text: 'PCB', fonts: fonts),
@@ -549,11 +569,34 @@ class _PartsResgisterState extends State<PartsResgister> {
                           controllerPriceSale: _controllerPriceSale,
                           controllerStock: _controllerStock,
                           controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=> _savePhoto('Display'),
+                          onTapCamera: ()=> _savePhoto('Display-$_selectedLow'),
                           showStockmin: true,
                           showPrice: true,
                           titlePrice: 'Preço Venda',
                           showCamera: true
+                      ),
+                      ButtonsRegister(
+                          text: "Salvar",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Display-$_selectedLow');
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
                       ),
                       SizedBox(height: 10),
                       ButtonsRegister(
@@ -572,7 +615,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                             && _selectedLow!="" && _selectedLow!=null
                             && _controllerModel.text!="" &&_controllerModel.text !=null
                             ){
-                              _registerDatabase('Display');
+                              _registerDatabase('Display-$_selectedLow');
                               _registerPCB('PCB');
                               setState(() {
                                 visibilityScreen1=false;
@@ -929,7 +972,29 @@ class _PartsResgisterState extends State<PartsResgister> {
                   visible: visibilityScreen7,
                   child: Column(
                     children: [
-                      ButtonsAdd(onPressed: (){}),
+                      ButtonsRegister(
+                          text: "Salvar",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Cores de Tampa-$_selectedLow');
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
                       GroupStock(
                           title: 'Cores de Tampa',
                           subtitle: 'Cor',
@@ -949,7 +1014,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                           controllerPriceSale: _controllerPriceSale,
                           controllerStock: _controllerStock,
                           controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Cores de Tampa'),
+                          onTapCamera: ()=>_savePhoto('Cores de Tampa-$_selectedLow'),
                           showStockmin: true,
                           showPrice: true,
                           titlePrice: 'Preço Venda',
@@ -972,7 +1037,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                                 && _selectedLow!="" && _selectedLow!=null
                                 && _controllerModel.text!="" &&_controllerModel.text !=null
                             ){
-                              _registerDatabase('Cores de Tampa');
+                              _registerDatabase('Cores de Tampa-$_selectedLow');
                               setState(() {
                                 visibilityScreen7=false;
                                 visibilityScreen8=true;
@@ -1003,7 +1068,29 @@ class _PartsResgisterState extends State<PartsResgister> {
                   visible: visibilityScreen8,
                   child: Column(
                     children: [
-                      ButtonsAdd(onPressed: (){}),
+                      ButtonsRegister(
+                          text: "Salvar",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Cores de Chassi-$_selectedLow');
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
                       GroupStock(
                           title: 'Cores de Chassi',
                           subtitle: 'Cor',
@@ -1023,7 +1110,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                           controllerPriceSale: _controllerPriceSale,
                           controllerStock: _controllerStock,
                           controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Cores de Chassi'),
+                          onTapCamera: ()=>_savePhoto('Cores de Chassi-$_selectedLow'),
                           showStockmin: true,
                           showPrice: true,
                           titlePrice: 'Preço Venda',
@@ -1047,7 +1134,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                                 && _selectedLow!="" && _selectedLow!=null
                                 && _controllerModel.text!="" &&_controllerModel.text !=null
                             ){
-                              _registerDatabase('Cores de Chassi');
+                              _registerDatabase('Cores de Chassi-$_selectedLow');
                               setState(() {
                                 visibilityScreen8=false;
                                 visibilityScreen9=true;
@@ -1476,7 +1563,29 @@ class _PartsResgisterState extends State<PartsResgister> {
                   visible: visibilityScreen15,
                   child: Column(
                     children: [
-                      ButtonsAdd(onPressed: (){}),
+                      ButtonsRegister(
+                          text: "Salvar",
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+                                && _controllerStock.text!="" && _controllerStock.text !=null
+                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+                                && _selectedUp!="" &&_selectedUp !=null
+                                && _selectedLow!="" &&_selectedLow !=null
+                                && _controllerRef.text!="" &&_controllerRef.text !=null
+                                && _selectedBrands!="" && _selectedBrands!=null
+                                && _selectedUp!="" && _selectedUp!=null
+                                && _selectedLow!="" && _selectedLow!=null
+                                && _controllerModel.text!="" &&_controllerModel.text !=null
+                            ){
+                              _registerDatabase('Gaveta do chip-$_selectedLow');
+                            }else{
+                              String text = 'Preencha todos os dados corretamente para continuar';
+                              showSnackBar(context,text);
+                            }
+                          }
+                      ),
                       GroupStock(
                           title: 'Gaveta do chip',
                           subtitle: 'Cor',
@@ -1496,7 +1605,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                           controllerPriceSale: _controllerPriceSale,
                           controllerStock: _controllerStock,
                           controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Gaveta do chip'),
+                          onTapCamera: ()=>_savePhoto('Gaveta do chip-$_selectedLow'),
                           showStockmin: true,
                           showPrice: true,
                           titlePrice: 'Preço Venda',
@@ -1519,7 +1628,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                                 && _selectedLow!="" && _selectedLow!=null
                                 && _controllerModel.text!="" &&_controllerModel.text !=null
                             ){
-                              _registerDatabase('Gaveta do chip');
+                              _registerDatabase('Gaveta do chip-$_selectedLow');
                               setState(() {
                                 visibilityScreen15=false;
                                 visibilityScreen16=true;

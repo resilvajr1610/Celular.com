@@ -179,12 +179,6 @@ class _BrandsScreenState extends State<BrandsScreen> {
     double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
 
-    var loading = Center(
-      child: Column(
-        children: [Text('Carregando marcas'), CircularProgressIndicator()],
-      ),
-    );
-
     return Scaffold(
         backgroundColor: PaletteColor.white,
         appBar: AppBar(
@@ -234,6 +228,7 @@ class _BrandsScreenState extends State<BrandsScreen> {
 
                           return ItemsList(
                             data: brands,
+                            showDelete: true,
                             onPressedDelete: () =>
                                 _showDialogDelete(id,brands),
                           );

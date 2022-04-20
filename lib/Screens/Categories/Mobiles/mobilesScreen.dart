@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:celular/Model/MobilesModel.dart';
 import 'package:celular/widgets/buttonsAdd.dart';
 import 'package:celular/widgets/dividerList.dart';
 import 'package:celular/widgets/dropDownItens.dart';
@@ -19,85 +20,24 @@ class MobilesScreen extends StatefulWidget {
 class _MobilesScreenState extends State<MobilesScreen> {
 
   FirebaseFirestore db = FirebaseFirestore.instance;
-  final _controllerBrands = StreamController<QuerySnapshot>.broadcast();
+  final _controllerMobiles = StreamController<QuerySnapshot>.broadcast();
   TextEditingController _controllerSerch = TextEditingController();
   String _selected;
   List _resultsList = [];
   List _allResults = [];
 
-  Future<Stream<QuerySnapshot>> _addListenerBrands()async{
+  Future<Stream<QuerySnapshot>> _addListenerMobiles()async{
 
     Stream<QuerySnapshot> stream = db
         .collection("marcas")
         .snapshots();
-
     stream.listen((data) {
-      _controllerBrands.add(data);
-    });
-  }
-
-  Future<Stream<QuerySnapshot>> _addListenerFilter()async{
-
-    Query query = db.collection("marcas");
-    if(_selected != null){
-      query = query.where("marcas",isEqualTo: _selected);
-    }
-
-    Stream<QuerySnapshot> stream = query.snapshots();
-    stream.listen((data) {
-      _controllerBrands.add(data);
-    });
-  }
-
-  _showDialogDelete(String idBrands,String brands) {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Confirmar"),
-            content: Text("Deseja realmente excluir essa marca?"),
-            actions: <Widget>[
-              FlatButton(
-                child: Text(
-                  "Cancelar",
-                  style: TextStyle(color: Colors.grey),
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              FlatButton(
-                color: Colors.red,
-                child: Text(
-                  "Remover",
-                  style: TextStyle(color: Colors.white),
-                ),
-                onPressed: () => _deleteBrands(idBrands,brands),
-              )
-            ],
-          );
-        });
-  }
-
-  _deleteBrands(String idBrands, String brands) {
-
-    db.collection("marcas")
-        .doc(brands)
-        .delete()
-        .then((_){
-
-      db.collection('marcaPesquisa')
-          .doc(idBrands)
-          .delete()
-          .then((_){
-        Navigator.of(context).pop();
-        Navigator.pushReplacementNamed(context, "/brands");
-      });
+      _controllerMobiles.add(data);
     });
   }
 
   _data() async {
-    var data = await db.collection("marcaPesquisa").get();
+    var data = await db.collection("celularPesquisa").get();
 
     setState(() {
       _allResults = data.docs;
@@ -115,9 +55,9 @@ class _MobilesScreenState extends State<MobilesScreen> {
 
     if (_controllerSerch.text != "") {
       for (var items in _allResults) {
-        var brands = BrandsModel.fromSnapshot(items).brands.toLowerCase();
+        var mobiles = MobilesModel.fromSnapshot(items).mobiles.toLowerCase();
 
-        if (brands.contains(_controllerSerch.text.toLowerCase())) {
+        if (mobiles.contains(_controllerSerch.text.toLowerCase())) {
           showResults.add(items);
         }
       }
@@ -132,7 +72,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
   @override
   void initState() {
     super.initState();
-    _addListenerBrands();
+    _addListenerMobiles();
     _data();
     _controllerSerch.addListener(_search);
   }
@@ -172,59 +112,10 @@ class _MobilesScreenState extends State<MobilesScreen> {
                   ButtonsAdd(onPressed: ()=> Navigator.pushNamed(context, "/partsRegister"))
                 ],
               ),
-              DropdownItens(
-                  streamBuilder: StreamBuilder<QuerySnapshot>(
-                    stream:_controllerBrands.stream,
-                    builder: (context,snapshot){
-                      if(!snapshot.hasData){
-                        Text("Carregando");
-                      }else {
-                        List<DropdownMenuItem> espItems = [];
-                        for (int i = 0; i < snapshot.data.docs.length;i++){
-                          DocumentSnapshot snap=snapshot.data.docs[i];
-                          espItems.add(
-                              DropdownMenuItem(
-                                child: Text(
-                                  snap.id,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(color: PaletteColor.darkGrey),
-                                ),
-                                value: "${snap.id}",
-                              )
-                          );
-                        }
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            DropdownButton(
-                              items:espItems,
-                              onChanged:(valor){
-                                setState(() {
-                                  _selected = valor;
-                                  _addListenerFilter();
-                                });
-                              },
-                              value: _selected,
-                              isExpanded: false,
-                              hint: new Text(
-                                "Escolha uma marca",
-                                style: TextStyle(color: PaletteColor.darkGrey ),
-                              ),
-                            ),
-                          ],
-                        );
-                      }
-                    },
-                  ),
-                  onChanged: (valor){
-                    setState(() {
-                      _selected = valor;
-                    });
-                  }),
               Container(
                 height: height * 0.5,
                 child: StreamBuilder(
-                  stream: _controllerBrands.stream,
+                  stream: _controllerMobiles.stream,
                   builder: (context, snapshot) {
                     return ListView.separated(
                         separatorBuilder: (context, index) => DividerList(),
@@ -233,12 +124,11 @@ class _MobilesScreenState extends State<MobilesScreen> {
                           DocumentSnapshot item = _resultsList[index];
 
                           String id        = item["id"];
-                          String brands    = item["marcas"];
+                          String brands    = item["celular"];
 
                           return ItemsList(
+                            showDelete: false,
                             data: brands,
-                            onPressedDelete: () =>
-                               _showDialogDelete(id,brands),
                           );
                         });
                   },
