@@ -6,18 +6,22 @@ import 'package:intl/intl.dart';
 class ExampleDataReport extends StatelessWidget {
 
   final String title;
+  final String brands;
   final String colorsUp;
-  final String colorsLow;
+  final String photo;
   final int unidUp;
-  final int unidLow;
+  final int unidMin;
   final bool showImagem;
+  final int difference;
 
   const ExampleDataReport({
     @ required this.title,
+    this.photo,
+    this.brands,
+    this.difference,
     @required this.colorsUp,
-    @required this.colorsLow,
-    @required this.unidUp,
-    @required this.unidLow,
+    this.unidUp,
+    this.unidMin,
     this.showImagem
   });
 
@@ -34,8 +38,8 @@ class ExampleDataReport extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: Row(
         children: [
-          showImagem?Container(
-            color: PaletteColor.lightGrey,
+          showImagem?Image.network(
+            this.photo,
             width: height*0.1,
             height: height*0.1,
           ):Container(),
@@ -50,6 +54,17 @@ class ExampleDataReport extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: Text(this.title),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4,horizontal: 8),
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text("Marca : "+ this.brands),
                     ),
                   ],
                 ),
@@ -72,13 +87,13 @@ class ExampleDataReport extends StatelessWidget {
                             ],
                           ),
                         ),
-                        Padding(
+                        this.showImagem?Container():Padding(
                           padding: const EdgeInsets.symmetric(vertical: 2,horizontal: 8),
                           child: Row(
                             children: [
-                              Text(showImagem?'Cor':'Mínimo:'),
+                              Text('Mínimo: '),
                               SizedBox(width: 10),
-                              Text(this.colorsLow,style: TextStyle(fontWeight: FontWeight.bold,color: PaletteColor.darkGrey))
+                              Text(format.format(this.unidMin),style: TextStyle(fontWeight: FontWeight.bold,color: PaletteColor.darkGrey))
                             ],
                           ),
                         ),
@@ -97,13 +112,13 @@ class ExampleDataReport extends StatelessWidget {
                             ],
                           ),
                         ),
-                        Padding(
+                        this.showImagem?Container():Padding(
                           padding: const EdgeInsets.symmetric(vertical: 2,horizontal: 8),
                           child: Row(
                             children: [
-                              Text(showImagem?'Estoque':'Quantidade faltante'),
+                              Text('Quantidade faltante: '),
                               SizedBox(width: 10),
-                              Text(format.format(this.unidLow),style: TextStyle(fontWeight: FontWeight.bold,color: showImagem?PaletteColor.darkGrey:Colors.red))
+                              Text(format.format(this.difference),style: TextStyle(fontWeight: FontWeight.bold,color: this.showImagem?PaletteColor.darkGrey:Colors.red))
                             ],
                           ),
                         ),

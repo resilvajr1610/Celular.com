@@ -1,12 +1,11 @@
-import 'package:celular/widgets/buttonsRegister.dart';
+import 'dart:async';
+
 import 'package:celular/widgets/dividerList.dart';
 import 'package:celular/widgets/exampleDataReport.dart';
-import 'package:celular/widgets/textTitle.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-
+import '../../Model/PartsModel.dart';
 import '../../Model/export.dart';
-import '../../widgets/dropDownItens.dart';
-import '../../widgets/exampleDataHistory.dart';
 import '../../widgets/inputSearch.dart';
 
 class StockReport extends StatefulWidget {
@@ -18,124 +17,71 @@ class StockReport extends StatefulWidget {
 
 class _StockReportState extends State<StockReport> {
 
-  TextEditingController _controllerSeach = TextEditingController();
-  TextEditingController _controllerStock = TextEditingController();
-  TextEditingController _controllerPriceSale = TextEditingController();
-  List<DropdownMenuItem<String>>_listItensBrands = [];
-  List<DropdownMenuItem<String>>_listItensModels = [];
-  List<DropdownMenuItem<String>>_listItensParts = [];
-  List<DropdownMenuItem<String>>_listItensMobiles = [];
-  List<DropdownMenuItem<String>>_listItensDisplay = [];
-  List<DropdownMenuItem<String>>_listItensColors = [];
-  String _selectedBrands;
-  String _selectedModels;
-  String _selectedParts="";
-  String _selectedMobiles;
-  String _selectedDisplay;
-  String _selectedColors;
-  static double fonts=15.0;
+  TextEditingController _controllerSearch = TextEditingController();
+  FirebaseFirestore db = FirebaseFirestore.instance;
+  var _controllerItem = StreamController<QuerySnapshot>.broadcast();
+  List _allResults = [];
+  List _resultsList = [];
+  Future resultsLoaded;
 
-  static List<DropdownMenuItem<String>> getBrands(){
-    List<DropdownMenuItem<String>> itensDrop = [];
+  _data() async {
+    var data = await db.collection("pecas").get();
 
-    //categorias
-    itensDrop.add(
-        DropdownMenuItem(child: Text("Selecione a marca",style: TextStyle(fontSize: fonts,color: Colors.black54)),value: "",));
-    itensDrop.add(
-        DropdownMenuItem(child: Text("Apple",style: TextStyle(fontSize: fonts,color: Colors.black54),),value: "Apple",));
-    return itensDrop;
+    setState(() {
+      _allResults = data.docs;
+    });
+    resultSearchList();
+    return "complete";
   }
 
-  static List<DropdownMenuItem<String>> getMobiles(){
-    List<DropdownMenuItem<String>> itensDrop = [];
-
-    itensDrop.add(DropdownMenuItem(child: Text("Selecione o celular",style: TextStyle(fontSize: fonts,color: Colors.black54)),value: ""));
-    itensDrop.add(DropdownMenuItem(child: Text("A1428",style: TextStyle(fontSize: fonts,color: Colors.black54),),value: "A1428"));
-
-    return itensDrop;
+  _search() {
+    resultSearchList();
   }
 
-  static List<DropdownMenuItem<String>> getModels(){
-    List<DropdownMenuItem<String>> itensDrop = [];
+  resultSearchList() {
+    var showResults = [];
 
-    itensDrop.add(
-        DropdownMenuItem(child: Text(
-          "Todos os modelos",style: TextStyle(fontSize: fonts,color: Colors.black54),
-        ),value: null,)
-    );
-    itensDrop.add(
-        DropdownMenuItem(child: Text("iPhone 5",style: TextStyle(fontSize: fonts,color: Colors.black54),),value: "iPhone 5",)
-    );
-    itensDrop.add(
-        DropdownMenuItem(child: Text("iPhone 6",style: TextStyle(fontSize: fonts,color: Colors.black54),),value: "iPhone 6",)
-    );
-    return itensDrop;
-  }
+    if (_controllerSearch.text != "") {
+      for (var items in _allResults) {
+        var parts = PartsModel.fromSnapshot(items).item.toLowerCase();
 
-  static List<DropdownMenuItem<String>> getParts(){
-    List<DropdownMenuItem<String>> itensDrop = [];
-
-    itensDrop.add(
-        DropdownMenuItem(child: Text(
-          "Todas as peças",style: TextStyle(fontSize: fonts,color: Colors.black54),
-        ),value: "",)
-    );
-    itensDrop.add(
-        DropdownMenuItem(child: Text("Display",style: TextStyle(fontSize: fonts,color: Colors.black54),),value: "Display",)
-    );
-    itensDrop.add(
-        DropdownMenuItem(child: Text("Câmera Frontal",style: TextStyle(fontSize: fonts,color: Colors.black54),),value: "Câmera Frontal",)
-    );
-    return itensDrop;
-  }
-
-  static List<DropdownMenuItem<String>> getDisplay(){
-    List<DropdownMenuItem<String>> itensDrop = [];
-
-    itensDrop.add(
-        DropdownMenuItem(child: Text("LCD",style: TextStyle(fontSize: fonts,color: Colors.black54),),value: "LCD")
-    );
-    itensDrop.add(
-        DropdownMenuItem(child: Text("OLED",style: TextStyle(fontSize: fonts,color: Colors.black54),),value: "OLED")
-    );
-    return itensDrop;
-  }
-
-  static List<DropdownMenuItem<String>> getColors(){
-    List<DropdownMenuItem<String>> itensDrop = [];
-
-    itensDrop.add(
-        DropdownMenuItem(child: Text("Dourado",style: TextStyle(fontSize: fonts,color: Colors.black54),),value: "Dourado")
-    );
-    itensDrop.add(
-        DropdownMenuItem(child: Text("Azul",style: TextStyle(fontSize: fonts,color: Colors.black54),),value: "Azul")
-    );
-    itensDrop.add(
-        DropdownMenuItem(child: Text("Preto",style: TextStyle(fontSize: fonts,color: Colors.black54),),value: "Preto")
-    );
-    itensDrop.add(
-        DropdownMenuItem(child: Text("Branco",style: TextStyle(fontSize: fonts,color: Colors.black54),),value: "Branco")
-    );
-    return itensDrop;
-  }
-
-  _loadingItensDropdown(){
-    _listItensBrands = getBrands();
-    _listItensModels = getModels();
-    _listItensParts = getParts();
-    _listItensMobiles = getMobiles();
-    _listItensDisplay = getDisplay();
-    _listItensColors = getColors();
+        if (parts.contains(_controllerSearch.text.toLowerCase())) {
+          showResults.add(items);
+        }
+      }
+    } else {
+      showResults = List.from(_allResults);
+    }
+    setState(() {
+      _resultsList = showResults;
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    _loadingItensDropdown();
+    _data();
+    _controllerSearch.addListener(_search);
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controllerSearch.removeListener(_search);
+    _controllerSearch.dispose();
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    resultsLoaded = _search();
   }
 
   @override
   Widget build(BuildContext context) {
+
+    double height = MediaQuery.of(context).size.height;
+
     return Scaffold(
       floatingActionButton: FloatingActionButton.extended(
         onPressed: (){},
@@ -163,69 +109,37 @@ class _StockReportState extends State<StockReport> {
           children: [
             Column(
               children: [
-                InputSearch(controller: _controllerSeach),
-                // DropdownItens(
-                //     listItens: _listItensBrands,
-                //     onChanged: (value){
-                //       setState(() {
-                //         _selectedBrands = value.toString();
-                //       });
-                //     },
-                //     selected: _selectedBrands
-                // ),
-                // DropdownItens(
-                //     listItens: _listItensModels,
-                //     onChanged: (value){
-                //       setState(() {
-                //         _selectedModels = value.toString();
-                //       });
-                //     },
-                //     selected: _selectedModels
-                // ),
-                // DropdownItens(
-                //     listItens: _listItensMobiles,
-                //     onChanged: (value){
-                //       setState(() {
-                //         _selectedMobiles = value.toString();
-                //       });
-                //     },
-                //     selected: _selectedMobiles
-                // ),
-                // DropdownItens(
-                //     listItens: _listItensParts,
-                //     onChanged: (value){
-                //       setState(() {
-                //         _selectedParts = value.toString();
-                //       });
-                //     },
-                //     selected: _selectedParts
-                // ),
+                InputSearch(controller: _controllerSearch),
                 DividerList(),
-                ExampleDataReport(
-                  showImagem: true,
-                  title: 'Display',
-                  colorsUp: 'Dourado',
-                  colorsLow: 'Preto',
-                  unidUp: 10,
-                  unidLow: 05,
-                ),
-                DividerList(),
-                ExampleDataReport(
-                  showImagem: true,
-                  title: 'Película 3D Privativa',
-                  colorsUp: 'N/C',
-                  colorsLow: 'N/C',
-                  unidUp: 15,
-                  unidLow: 00,
-                ),
-                DividerList(),
-                ExampleDataReport(
-                  showImagem: true,
-                  title: 'Película de Vidro',
-                  colorsUp: 'N/C',
-                  colorsLow: 'N/C',
-                  unidUp: 08,
-                  unidLow: 05,
+                Container(
+                  height: height * 0.4,
+                  child: StreamBuilder(
+                    stream: _controllerItem.stream,
+                    builder: (context, snapshot) {
+                      return ListView.separated(
+                          separatorBuilder: (context, index) => DividerList(),
+                          itemCount: _resultsList.length,
+                          itemBuilder: (BuildContext context, index) {
+                            DocumentSnapshot item = _resultsList[index];
+
+                            String id        = item["id"];
+                            String stock    = item["estoque"]??"";
+                            String peca    = item["peca"]??"";
+                            String selecionado2    = item["selecionado2"]??"";
+                            String foto    = item["foto"]??"";
+                            String brands    = item["marca"]??"";
+
+                            return ExampleDataReport(
+                              showImagem: true,
+                              photo: foto,
+                              title: peca,
+                              brands: brands,
+                              colorsUp: selecionado2,
+                              unidUp: int.parse(stock),
+                            );
+                          });
+                    },
+                  ),
                 ),
               ],
             ),
