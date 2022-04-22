@@ -2,12 +2,10 @@ import 'dart:async';
 import 'package:celular/Model/MobilesModel.dart';
 import 'package:celular/widgets/buttonsAdd.dart';
 import 'package:celular/widgets/dividerList.dart';
-import 'package:celular/widgets/dropDownItens.dart';
 import 'package:celular/widgets/inputSearch.dart';
 import 'package:celular/widgets/itemsList.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import '../../../Model/BrandsModel.dart';
 import '../../../Model/export.dart';
 
 class MobilesScreen extends StatefulWidget {
@@ -22,7 +20,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
   FirebaseFirestore db = FirebaseFirestore.instance;
   final _controllerMobiles = StreamController<QuerySnapshot>.broadcast();
   TextEditingController _controllerSerch = TextEditingController();
-  String _selected;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   List _resultsList = [];
   List _allResults = [];
 
@@ -69,6 +67,47 @@ class _MobilesScreenState extends State<MobilesScreen> {
     });
   }
 
+  _deleteMobiles(String idColor) {
+
+    db.collection('celularPesquisa')
+        .doc(idColor)
+        .delete()
+        .then((_) {
+          Navigator.of(context).pop();
+          Navigator.pushReplacementNamed(context, "/mobiles");
+    });
+  }
+
+  _showDialogDelete(String idMobile) {
+    showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text("Confirmar"),
+            content: Text("Deseja realmente excluir essa celular?"),
+            actions: <Widget>[
+              FlatButton(
+                child: Text(
+                  "Cancelar",
+                  style: TextStyle(color: Colors.grey),
+                ),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
+              FlatButton(
+                color: Colors.red,
+                child: Text(
+                  "Remover",
+                  style: TextStyle(color: Colors.white),
+                ),
+                onPressed: () => _deleteMobiles(idMobile),
+              )
+            ],
+          );
+        });
+  }
+
   @override
   void initState() {
     super.initState();
@@ -113,25 +152,42 @@ class _MobilesScreenState extends State<MobilesScreen> {
                 ],
               ),
               Container(
-                height: height * 0.5,
+                height: height * 0.7,
                 child: StreamBuilder(
                   stream: _controllerMobiles.stream,
                   builder: (context, snapshot) {
-                    return ListView.separated(
-                        separatorBuilder: (context, index) => DividerList(),
-                        itemCount: _resultsList.length,
-                        itemBuilder: (BuildContext context, index) {
-                          DocumentSnapshot item = _resultsList[index];
+                    if(snapshot.hasError)
+                      return Text("Erro ao carregar dados!");
 
-                          String id        = item["id"];
-                          String brands    = item["celular"];
-
-                          return ItemsList(
-                            showDelete: false,
-                            data: brands,
-                          );
-                        });
-                  },
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.none:
+                        case ConnectionState.waiting:
+                        case ConnectionState.active:
+                        case ConnectionState.done:
+                        if(_resultsList.length == 0){
+                            return Center(
+                                child: Text('Sem dados!',style: TextStyle(fontSize: 20),)
+                            );
+                            }else{
+                              return ListView.separated(
+                              separatorBuilder: (context, index) => DividerList(),
+                              itemCount: _resultsList.length,
+                              itemBuilder: (BuildContext context, index) {
+                              DocumentSnapshot item = _resultsList[index];
+                          
+                              String id        = item["id"];
+                              String brands    = item["celular"];
+                          
+                              return ItemsList(
+                              showDelete: true,
+                              data: brands,
+                              onPressedDelete: () =>_showDialogDelete(id),
+                              );
+                              });
+                            }
+                        }
+                        
+                      },
                 ),
               ),
             ],

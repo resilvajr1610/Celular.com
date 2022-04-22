@@ -217,22 +217,39 @@ class _BrandsScreenState extends State<BrandsScreen> {
                 child: StreamBuilder(
                   stream: _controllerBrands.stream,
                   builder: (context, snapshot) {
-                    return ListView.separated(
-                        separatorBuilder: (context, index) => DividerList(),
-                        itemCount: _resultsList.length,
-                        itemBuilder: (BuildContext context, index) {
-                          DocumentSnapshot item = _resultsList[index];
+                    if(snapshot.hasError)
+                      return Text("Erro ao carregar dados!");
 
-                          String id        = item["id"];
-                          String brands    = item["marcas"];
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.none:
+                        case ConnectionState.active:
+                        case ConnectionState.waiting:
+                        case ConnectionState.done:
+                          if (_resultsList.length == 0) {
+                            return Center(
+                                child: Text('Sem dados!', style: TextStyle(
+                                    fontSize: 20),)
+                            );
+                          } else {
+                            return ListView.separated(
+                                separatorBuilder: (context, index) =>
+                                    DividerList(),
+                                itemCount: _resultsList.length,
+                                itemBuilder: (BuildContext context, index) {
+                                  DocumentSnapshot item = _resultsList[index];
 
-                          return ItemsList(
-                            data: brands,
-                            showDelete: true,
-                            onPressedDelete: () =>
-                                _showDialogDelete(id,brands),
-                          );
-                        });
+                                  String id = item["id"];
+                                  String brands = item["marcas"];
+
+                                  return ItemsList(
+                                    data: brands,
+                                    showDelete: true,
+                                    onPressedDelete: () =>
+                                        _showDialogDelete(id, brands),
+                                  );
+                                });
+                          }
+                      }
                   },
                 ),
               ),

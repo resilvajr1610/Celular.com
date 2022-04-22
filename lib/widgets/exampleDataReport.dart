@@ -9,6 +9,8 @@ class ExampleDataReport extends StatelessWidget {
   final String brands;
   final String colorsUp;
   final String photo;
+  final String model;
+  final String ref;
   final int unidUp;
   final int unidMin;
   final bool showImagem;
@@ -18,6 +20,8 @@ class ExampleDataReport extends StatelessWidget {
     @ required this.title,
     this.photo,
     this.brands,
+    this.model,
+    this.ref,
     this.difference,
     @required this.colorsUp,
     this.unidUp,
@@ -38,10 +42,12 @@ class ExampleDataReport extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: Row(
         children: [
-          showImagem?Image.network(
-            this.photo,
-            width: height*0.1,
+          showImagem?Image.network(this.photo,
             height: height*0.1,
+            width: height*0.1,
+            errorBuilder: (BuildContext context, Object exception, StackTrace stackTrace) {
+              return Container(height: height*0.1,width: height*0.1,child: Icon(Icons.do_not_disturb));
+            },
           ):Container(),
           Column(
             mainAxisAlignment: MainAxisAlignment.start,
@@ -65,6 +71,28 @@ class ExampleDataReport extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: Text("Marca : "+ this.brands),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4,horizontal: 8),
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text("Modelo : "+ this.model),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 4,horizontal: 8),
+                child: Row(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 8),
+                      child: Text("Referência : "+ this.ref),
                     ),
                   ],
                 ),

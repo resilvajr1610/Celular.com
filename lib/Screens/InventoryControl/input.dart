@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:celular/Model/PartsModel.dart';
+import 'package:celular/Model/UpdatesModel.dart';
 import 'package:celular/widgets/buttonsRegister.dart';
 import 'package:celular/widgets/groupStock.dart';
 import 'package:celular/widgets/inputSearch.dart';
@@ -28,6 +29,10 @@ class _InputState extends State<Input> {
   Future resultsLoaded;
   bool _visibility=false;
   String _id;
+  String _part;
+  String _brand;
+  String _item;
+  UpdatesModel _updatesModel;
 
   _data() async {
     var data = await db.collection("pecas").get();
@@ -63,20 +68,42 @@ class _InputState extends State<Input> {
   }
 
   _updateValue(){
+
+    _updatesModel = UpdatesModel.createId();
+
+    _updatesModel.type = 'entrada';
+    _updatesModel.quantity = _controllerStock.text;
+    _updatesModel.part = _part;
+    _updatesModel.brand = _brand;
+    _updatesModel.date = DateTime.now().toString();
+    _updatesModel.price = _controllerPriceSale.text;
+    _updatesModel.item = _item;
+
     db
         .collection("pecas")
         .doc(_id)
         .update({
           "precoCompra":_controllerPriceSale.text,
           "estoque":_controllerStock.text
-        }).then((_){
-          _controllerStock.clear();
-          _controllerPriceSale.clear();
-          _id = "";
-          setState(() {
-            _visibility = false;
-            _data();
-          });
+        }).then((_) {
+
+      db.collection("historicoPrecos")
+          .doc(_updatesModel.id)
+          .set(_updatesModel.toMap())
+          .then((_){
+            _controllerStock.clear();
+            _controllerPriceSale.clear();
+            _id = "";
+            _part = "";
+            _brand = "";
+            _item = "";
+
+            setState(() {
+              _visibility = false;
+              _data();
+            });
+        });
+
     });
   }
 
@@ -140,9 +167,11 @@ class _InputState extends State<Input> {
                         DocumentSnapshot item = _resultsList[index];
 
                         _id        = item["id"];
-                        String items    = item["item"];
+                        _item    = item["item"];
                         String stock    = item["estoque"]??"";
                         String priceSale    = item["precoCompra"]??"";
+                        _brand    = item["marca"]??"";
+                        _part    = item["peca"]??"";
 
                         return ItemsList(
                           onTapItem: (){
@@ -152,7 +181,7 @@ class _InputState extends State<Input> {
                               _visibility=true;
                             });
                           },
-                          data: items,
+                          data: _item,
                           showDelete: false,
                         );
                       });

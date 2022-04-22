@@ -10,4 +10,5 @@ class PaletteColor {
   static const Color lightBlue = Color(0xff56D2FD);
   static const Color divider = Color(0xffCED3D3);
   static const Color greyButton = Color(0xffB9B9B9);
+  static const Color green = Color(0xff66CC01);
 }

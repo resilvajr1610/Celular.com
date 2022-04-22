@@ -2,8 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:celular/Model/MobilesModel.dart';
 import 'package:celular/Model/PartsModel.dart';
-import 'package:celular/widgets/buttonCamera.dart';
-import 'package:celular/widgets/buttonsRegister.dart';
+import 'package:celular/widgets/controlRegisterParts.dart';
 import 'package:celular/widgets/groupStock.dart';
 import 'package:celular/widgets/inputRegister.dart';
 import 'package:celular/widgets/textTitle.dart';
@@ -40,36 +39,17 @@ class _PartsResgisterState extends State<PartsResgister> {
   TextEditingController _controllerPricePuschace = TextEditingController();
   TextEditingController _controllerPriceSale = TextEditingController();
   TextEditingController _controllerCodBattery = TextEditingController();
-  bool visibility = false;
-  bool visibilityScreen1 = true;
-  bool visibilityScreen2 = false;
-  bool visibilityScreen3 = false;
-  bool visibilityScreen4 = false;
-  bool visibilityScreen5 = false;
-  bool visibilityScreen6 = false;
-  bool visibilityScreen7 = false;
-  bool visibilityScreen8 = false;
-  bool visibilityScreen9 = false;
-  bool visibilityScreen10 = false;
-  bool visibilityScreen11 = false;
-  bool visibilityScreen12 = false;
-  bool visibilityScreen13 = false;
-  bool visibilityScreen14 = false;
-  bool visibilityScreen15 = false;
-  bool visibilityScreen16 = false;
-  bool visibilityScreen17 = false;
-  bool visibilityScreen18 = false;
-  bool visibilityScreen19 = false;
-  bool visibilityScreen20 = false;
+  static double fonts=20.0;
+  bool _updatePhoto = false;
   bool _switchPCB = false;
   bool _showCamera = true;
+  bool _sendPhoto=false;
   File photo;
-  bool _updatePhoto = false;
   String _urlPhoto;
   String _selectedBrands;
   String _selectedUp;
   String _selectedLow;
-  static double fonts=20.0;
+  int _cont=1;
 
   Future<Stream<QuerySnapshot>> _addListenerBrands()async{
 
@@ -105,6 +85,9 @@ class _PartsResgisterState extends State<PartsResgister> {
   }
 
   Widget streamBrands() {
+
+    _addListenerBrands();
+
     return StreamBuilder<QuerySnapshot>(
       stream:_controllerBrands.stream,
       builder: (context,snapshot){
@@ -115,11 +98,12 @@ class _PartsResgisterState extends State<PartsResgister> {
         switch (snapshot.connectionState){
           case ConnectionState.none:
           case ConnectionState.waiting:
+            return Container();
           case ConnectionState.active:
           case ConnectionState.done:
 
           if(!snapshot.hasData){
-            Text("Carregando");
+            return CircularProgressIndicator();
           }else {
             List<DropdownMenuItem> espItems = [];
             for (int i = 0; i < snapshot.data.docs.length; i++) {
@@ -171,6 +155,7 @@ class _PartsResgisterState extends State<PartsResgister> {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
           case ConnectionState.waiting:
+            return Container();
             break;
           case ConnectionState.active:
           case ConnectionState.done:
@@ -179,7 +164,7 @@ class _PartsResgisterState extends State<PartsResgister> {
             return Text("Erro ao carregar dados!");
 
           if(!snapshot.hasData){
-            Text("Carregando");
+            return Container();
           }else {
             List<DropdownMenuItem> espItems = [];
             for (int i = 0; i < snapshot.data.docs.length;i++){
@@ -235,10 +220,12 @@ class _PartsResgisterState extends State<PartsResgister> {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
           case ConnectionState.waiting:
+              return Container();
+              break;
           case ConnectionState.active:
           case ConnectionState.done:
             if (!snapshot.hasData) {
-              Text("Carregando");
+              return CircularProgressIndicator();
             } else {
               List<DropdownMenuItem> espItems = [];
               for (int i = 0; i < snapshot.data.docs.length; i++) {
@@ -293,6 +280,7 @@ class _PartsResgisterState extends State<PartsResgister> {
           this.photo = imageTemporary;
           setState(() {
             _updatePhoto=true;
+            _sendPhoto=true;
           });
           _uploadImage(namePhoto);
         });
@@ -359,56 +347,73 @@ class _PartsResgisterState extends State<PartsResgister> {
         .set(dateUpdate);
   }
 
-  _registerDatabase(String part){
-
-    Map<String,dynamic> dateUpdate = {
-      "selecionado1" : _selectedUp,
-      "selecionado2" : _selectedLow,
-      "estoque" : _controllerStock.text,
-      "estoqueMinimo" : _controllerStockMin.text,
-      "precoCompra" : _controllerPricePuschace.text,
-      "precoVenda" : _controllerPriceSale.text,
-      "referencia" : _controllerRef.text,
-      "peca" : part,
-      "marca": _selectedBrands,
-      "item":_selectedBrands+"_"+_controllerModel.text+"_"+part
-    };
-
-    db.collection("pecas")
-        .doc(_partsModel.id)
-        .update(dateUpdate).then((_){
-          db.collection('celulares')
-            .doc(_controllerModel.text)
-            .set({
-            "celular":_controllerModel.text,
-            "marca":_selectedBrands
-          }).then((value){
-            _controllerStock.clear();
-            _controllerStockMin.clear();
-            _controllerPricePuschace.clear();
-            _controllerPriceSale.clear();
-          });
-    });
-  }
-
-  _registerPCB(String part){
-
+  _registerMobile(){
     _mobilesModel = MobilesModel.createId();
 
     _mobilesModel.mobiles = _controllerModel.text;
     _mobilesModel.brands = _selectedBrands;
 
     db.collection('celularPesquisa')
-      .doc(_mobilesModel.id)
-      .set(_mobilesModel.toMap());
+        .doc(_mobilesModel.id)
+        .set(_mobilesModel.toMap());
+  }
 
-    Map<String,dynamic> dateUpdate = {
-      "PCB" : _switchPCB?"sim":"não",
-    };
+  _registerDatabase(String part,String description,String color){
 
-    db.collection("pecas")
-        .doc(_partsModel.id)
-        .set(dateUpdate);
+    if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
+        && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
+        && _controllerStock.text!="" && _controllerStock.text !=null
+        && _controllerStockMin.text!="" && _controllerStockMin.text !=null
+        && _selectedUp!="" &&_selectedUp !=null
+        && _selectedLow!="" &&_selectedLow !=null
+        && _controllerRef.text!="" &&_controllerRef.text !=null
+        && _selectedBrands!="" && _selectedBrands!=null
+        && _selectedUp!="" && _selectedUp!=null
+        && _selectedLow!="" && _selectedLow!=null
+        && _controllerModel.text!="" &&_controllerModel.text !=null
+        && _sendPhoto
+    ){
+      Map<String,dynamic> dateUpdate = {
+        "selecionado1" : _selectedUp,
+        "selecionado2" : _selectedLow,
+        "estoque" : _controllerStock.text,
+        "estoqueMinimo" : _controllerStockMin.text,
+        "precoCompra" : _controllerPricePuschace.text,
+        "precoVenda" : _controllerPriceSale.text,
+        "referencia" : _controllerRef.text,
+        "peca" : part,
+        "marca": _selectedBrands,
+        "item":_selectedBrands+"_"+_controllerModel.text+"_"+part,
+        "modelo":_controllerModel.text,
+        "descricao":description,
+        "cor":color,
+      };
+
+      db.collection("pecas")
+          .doc(_partsModel.id)
+          .update(dateUpdate).then((_){
+        db.collection('celulares')
+            .doc(_controllerModel.text)
+            .set({
+          "celular":_controllerModel.text,
+          "marca":_selectedBrands
+        }).then((value){
+          setState(() {
+            _controllerStock.clear();
+            _controllerStockMin.clear();
+            _controllerPricePuschace.clear();
+            _controllerPriceSale.clear();
+            description="";
+            color="";
+            part="";
+            _sendPhoto=false;
+          });
+        });
+      });
+    }else{
+      String text = 'Preencha todos os dados e foto para continuar';
+      showSnackBar(context,text);
+    }
   }
 
   _registerBattery(String part){
@@ -422,6 +427,18 @@ class _PartsResgisterState extends State<PartsResgister> {
         .collection(_controllerModel.text)
         .doc(part)
         .update(dateUpdate);
+  }
+
+  _back(){
+    setState(() {
+      _cont--;
+    });
+  }
+
+  _forward(){
+    setState(() {
+      _cont++;
+    });
   }
 
   @override
@@ -460,7 +477,18 @@ class _PartsResgisterState extends State<PartsResgister> {
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
-          child: Column(
+          child: _updatePhoto?Container(
+            alignment: Alignment.center,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(color: PaletteColor.darkGrey),
+                TextTitle(text: 'Salvando foto...', fonts: fonts)
+              ],
+            ),
+          ):Column(
             children: [
               Container(
                 alignment: Alignment.center,
@@ -476,1494 +504,617 @@ class _PartsResgisterState extends State<PartsResgister> {
                     });
                   }),
               SizedBox(height: 20),
-              Row(
+              InputRegister(keyboardType: TextInputType.text, controller: _controllerModel, hint: 'Modelo',width: width*0.7,fonts: 20),
+              InputRegister(keyboardType: TextInputType.text, controller: _controllerRef, hint: 'Referências',width: width*0.7,fonts: 20),
+              _cont==1?Column(
                 children: [
-                  Container(
-                    width: width*0.6,
-                    child: Column(
-                      children: [
-                        InputRegister(keyboardType: TextInputType.text, controller: _controllerModel, hint: 'Modelo',width: width*0.5,fonts: 20),
-                        InputRegister(keyboardType: TextInputType.text, controller: _controllerRef, hint: 'Referências',width: width*0.5,fonts: 20),
-                      ],
-                    ),
+                  Row(
+                    children: [
+                      TextTitle(text: 'PCB', fonts: fonts),
+                      SizedBox(width: 20),
+                      TextTitle(text: 'Não', fonts: 14),
+                      Switch(
+                          activeColor: PaletteColor.blueButton,
+                          value: _switchPCB,
+                          onChanged: (bool value){
+                            setState(() {
+                              _switchPCB = value;
+                            });
+                          }
+                      ),
+                      TextTitle(text: 'Sim', fonts: 14),
+                    ],
                   ),
-                  _urlPhoto!=null?_updatePhoto?Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      CircularProgressIndicator(color: PaletteColor.darkGrey),
-                      Text('Aguarde',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: PaletteColor.darkGrey),),
-                    ],
-                  ):Column(
-                    children: [
-                      Icon(Icons.check_circle_outline,color: Colors.green,),
-                      Text('Foto enviada!',style: TextStyle(color: Colors.green),)
-                    ],
-                  ):ButtonCamera(
-                      onTap: ()=> _savePhoto(_controllerModel.text),
-                      width: width*0.3
-                  )
+                  GroupStock(
+                      title: 'Display',
+                      subtitle: 'Cor',
+                      fontsTitle: 16,
+                      fontsSubtitle: 14,
+                      width: width*0.5,
+                      showCod: false,
+                      showDropDownUp: true,
+                      showDropDownLow: true,
+                      //display
+                      streamBuilderUp: streamUp(_controllerDisplay),
+                      //color
+                      streamBuilderLow: streamLow(_controllerColors),
+                      onChangedUp: (value){
+                        setState(() {
+                          _selectedUp = value.toString();
+                        });
+                      },
+                      onChangedLow: (value){
+                        setState(() {
+                          _selectedLow = value.toString();
+                        });
+                      },
+                      selectedUp: _selectedUp,
+                      selectedLow: _selectedLow,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=> _savePhoto('Display-$_selectedLow'),
+                      sendPhoto: _sendPhoto,
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: null,
+                      onPressedForward: _forward,
+                      onTapRegister: (){
+                        _registerMobile();
+                        _registerDatabase('Display-$_selectedLow','Display',_selectedLow);
+                      }
+                  ),
                 ],
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                visible: visibilityScreen1,
-                  child: Column(
-                    children: [
-                      Row(
-                        children: [
-                          TextTitle(text: 'PCB', fonts: fonts),
-                          SizedBox(width: 20),
-                          TextTitle(text: 'Não', fonts: 14),
-                          Switch(
-                              activeColor: PaletteColor.blueButton,
-                              value: _switchPCB,
-                              onChanged: (bool value){
-                                setState(() {
-                                  _switchPCB = value;
-                                });
-                              }
-                          ),
-                          TextTitle(text: 'Sim', fonts: 14),
-                        ],
-                      ),
-                      GroupStock(
-                          title: 'Display',
-                          subtitle: 'Cor',
-                          fontsTitle: 16,
-                          fontsSubtitle: 14,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: true,
-                          showDropDownLow: true,
-                          //display
-                          streamBuilderUp: streamUp(_controllerDisplay),
-                          //color
-                          streamBuilderLow: streamLow(_controllerColors),
-                          onChangedUp: (value){
-                            setState(() {
-                              _selectedUp = value.toString();
-                            });
-                          },
-                          onChangedLow: (value){
-                            setState(() {
-                              _selectedLow = value.toString();
-                            });
-                          },
-                          selectedUp: _selectedUp,
-                          selectedLow: _selectedLow,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=> _savePhoto('Display-$_selectedLow'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      ButtonsRegister(
-                          text: "Salvar",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Display-$_selectedLow');
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                            && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                            && _controllerStock.text!="" && _controllerStock.text !=null
-                            && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                            && _selectedUp!="" &&_selectedUp !=null
-                            && _selectedLow!="" &&_selectedLow !=null
-                            && _controllerRef.text!="" &&_controllerRef.text !=null
-                            && _selectedBrands!="" && _selectedBrands!=null
-                            && _selectedUp!="" && _selectedUp!=null
-                            && _selectedLow!="" && _selectedLow!=null
-                            && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Display-$_selectedLow');
-                              _registerPCB('PCB');
-                              setState(() {
-                                visibilityScreen1=false;
-                                visibilityScreen2=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                visible: visibilityScreen2,
-                  child: Column(
-                    children: [
-                      GroupStock(
-                          title: 'Película 3D',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: false,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Película 3D'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Película 3D');
-                              setState(() {
-                                visibilityScreen2=false;
-                                visibilityScreen3=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen3,
-                  child: Column(
-                    children: [
-                      GroupStock(
-                          title: 'Película 3D Privativa',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: false,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Película 3D Privativa'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              setState(() {
-                                _registerDatabase('Película 3D Privativa');
-                                visibilityScreen3=false;
-                                visibilityScreen4=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen4,
-                  child: Column(
-                    children: [
-                      GroupStock(
-                          title: 'Película de Vidro',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: false,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Película de Vidro'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: _showCamera
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Película de Vidro');
-                              setState(() {
-                                visibilityScreen4=false;
-                                visibilityScreen5=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen5,
-                  child: Column(
-                    children: [
-                      GroupStock(
-                          title: 'Case Original',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: false,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Case Original'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              setState((){
-                                _registerDatabase('Case Original');
-                                visibilityScreen5=false;
-                                visibilityScreen6=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen6,
-                  child: Column(
-                    children: [
-                      GroupStock(
-                          title: 'Case TPU',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: false,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Case TPU'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Case TPU');
-                              setState(() {
-                                visibilityScreen6=false;
-                                visibilityScreen7=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen7,
-                  child: Column(
-                    children: [
-                      ButtonsRegister(
-                          text: "Salvar",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Cores de Tampa-$_selectedLow');
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                      GroupStock(
-                          title: 'Cores de Tampa',
-                          subtitle: 'Cor',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          streamBuilderLow: streamLow(_controllerColors),
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: true,
-                          onChangedLow: (value){
-                            setState(() {
-                              _selectedLow = value.toString();
-                            });
-                          },
-                          selectedLow: _selectedLow,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Cores de Tampa-$_selectedLow'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Cores de Tampa-$_selectedLow');
-                              setState(() {
-                                visibilityScreen7=false;
-                                visibilityScreen8=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen8,
-                  child: Column(
-                    children: [
-                      ButtonsRegister(
-                          text: "Salvar",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Cores de Chassi-$_selectedLow');
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                      GroupStock(
-                          title: 'Cores de Chassi',
-                          subtitle: 'Cor',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          streamBuilderLow: streamLow(_controllerColors),
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: true,
-                          onChangedLow: (value){
-                            setState(() {
-                              _selectedLow = value.toString();
-                            });
-                          },
-                          selectedLow: _selectedLow,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Cores de Chassi-$_selectedLow'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Cores de Chassi-$_selectedLow');
-                              setState(() {
-                                visibilityScreen8=false;
-                                visibilityScreen9=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen9,
-                  child: Column(
-                    children: [
-                      GroupStock(
-                          title: 'Conector de Carga',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showDropDownUp: false,
-                          showDropDownLow: false,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Conector de Carga'),
-                          showStockmin: true,
-                          showCod: false,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Conector de Carga');
-                              setState(() {
-                                visibilityScreen9=false;
-                                visibilityScreen10=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen10,
-                  child: Column(
-                    children: [
-                      GroupStock(
-                          title: 'Dock de Carga',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: false,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Dock de Carga'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Dock de Carga');
-                              setState(() {
-                                visibilityScreen10=false;
-                                visibilityScreen11=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen11,
-                  child: Column(
-                    children: [
-                      GroupStock(
-                          title: 'Bateria',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showCod: true,
-                          showDropDownUp: false,
-                          showDropDownLow: false,
-                          controllerCod: _controllerCodBattery,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Bateria'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                                && _controllerCodBattery.text!="" &&_controllerCodBattery.text !=null
-                            ){
-                              _registerDatabase('Bateria');
-                              _registerBattery('Bateria');
-
-                              setState(() {
-                                visibilityScreen11=false;
-                                visibilityScreen12=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen12,
-                  child: Column(
-                    children: [
-                      GroupStock(
-                          title: 'Flex Power',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: false,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Flex Power'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Flex Power');
-                              setState(() {
-                                visibilityScreen12=false;
-                                visibilityScreen13=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen13,
-                  child: Column(
-                    children: [
-                      GroupStock(
-                          title: 'Digital',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: false,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Digital'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Digital');
-                              setState(() {
-                                visibilityScreen13=false;
-                                visibilityScreen14=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen14,
-                  child: Column(
-                    children: [
-                      GroupStock(
-                          title: 'Lente da Câmera',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: false,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Lente da Câmera'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Lente da câmera');
-                              setState(() {
-                                visibilityScreen14=false;
-                                visibilityScreen15=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen15,
-                  child: Column(
-                    children: [
-                      ButtonsRegister(
-                          text: "Salvar",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Gaveta do chip-$_selectedLow');
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                      GroupStock(
-                          title: 'Gaveta do chip',
-                          subtitle: 'Cor',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: true,
-                          onChangedLow: (value){
-                            setState(() {
-                              _selectedLow = value.toString();
-                            });
-                          },
-                          selectedLow: _selectedLow,
-                          streamBuilderLow: streamLow(_controllerColors),
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Gaveta do chip-$_selectedLow'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Gaveta do chip-$_selectedLow');
-                              setState(() {
-                                visibilityScreen15=false;
-                                visibilityScreen16=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen16,
-                  child: Column(
-                    children: [
-                      GroupStock(
-                          title: 'Câmera Frontal',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: false,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Câmera Frontal'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Câmera Frontal');
-                              setState(() {
-                                visibilityScreen16=false;
-                                visibilityScreen17=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen17,
-                  child: Column(
-                    children: [
-                      GroupStock(
-                          title: 'Câmera Traseira',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: false,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Câmera Traseira'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Câmera Traseira');
-                              setState(() {
-                                visibilityScreen17=false;
-                                visibilityScreen18=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen18,
-                  child: Column(
-                    children: [
-                      GroupStock(
-                          title: 'Falante Auricular',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: false,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Falante Auricular'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Falante Auricular');
-                              setState(() {
-                                visibilityScreen18=false;
-                                visibilityScreen19=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen19,
-                  child: Column(
-                    children: [
-                      GroupStock(
-                          title: 'Campainha',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: false,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Campainha'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Próximo",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Campainha');
-                              setState(() {
-                                visibilityScreen19=false;
-                                visibilityScreen20=true;
-                              });
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
-              _updatePhoto?Container(
-                alignment: Alignment.center,
-                height: 200,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(color: PaletteColor.darkGrey),
-                    Text('Aguarde',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(color: PaletteColor.darkGrey),),
-                  ],
-                ),
-              ):Visibility(
-                  visible: visibilityScreen20,
-                  child: Column(
-                    children: [
-                      GroupStock(
-                          title: 'Flex Sub Placa',
-                          fontsTitle: 16,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: false,
-                          showDropDownLow: false,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=>_savePhoto('Flex Sub Placa'),
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      SizedBox(height: 10),
-                      ButtonsRegister(
-                          text: "Finalizar",
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-                                && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-                                && _controllerStock.text!="" && _controllerStock.text !=null
-                                && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-                                && _selectedUp!="" &&_selectedUp !=null
-                                && _selectedLow!="" &&_selectedLow !=null
-                                && _controllerRef.text!="" &&_controllerRef.text !=null
-                                && _selectedBrands!="" && _selectedBrands!=null
-                                && _selectedUp!="" && _selectedUp!=null
-                                && _selectedLow!="" && _selectedLow!=null
-                                && _controllerModel.text!="" &&_controllerModel.text !=null
-                            ){
-                              _registerDatabase('Flex Sub Placa');
-                              Navigator.pushReplacementNamed(context, "/mobiles");
-                            }else{
-                              String text = 'Preencha todos os dados corretamente para continuar';
-                              showSnackBar(context,text);
-                            }
-                          }
-                      ),
-                    ],
-                  )
-              ),
+              ):Container(),
+              _cont==2?Column(
+                children: [
+                  GroupStock(
+                      title: 'Película 3D',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: false,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Película 3D'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_registerDatabase('Película 3D','Película 3D',"")
+                  ),
+                ],
+              ):Container(),
+              _cont==3?Column(
+                children: [
+                  GroupStock(
+                      title: 'Película 3D Privativa',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      sendPhoto: _sendPhoto,
+                      showCod: false,
+                      showDropDownUp: false,
+                      showDropDownLow: false,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Película 3D Privativa'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_registerDatabase('Película 3D Privativa','Película 3D Privativa',"")
+                  ),
+                ],
+              ):Container(),
+              _cont==4?Column(
+                children: [
+                  GroupStock(
+                      title: 'Película de Vidro',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: false,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Película de Vidro'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: _showCamera
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=> _registerDatabase('Película de Vidro','Película de Vidro',"")
+                  ),
+                ],
+              ):Container(),
+              _cont==5?Column(
+                children: [
+                  GroupStock(
+                      title: 'Case Original',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: false,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Case Original'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_registerDatabase('Case Original','Case Original',"")
+                  ),
+                ],
+              ):Container(),
+              _cont==6?Column(
+                children: [
+                  GroupStock(
+                      title: 'Case TPU',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: false,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Case TPU'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_registerDatabase('Case TPU','Case TPU',"")
+                  ),
+                ],
+              ):Container(),
+              _cont==7?Column(
+                children: [
+                  GroupStock(
+                      title: 'Cores de Tampa',
+                      subtitle: 'Cor',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      streamBuilderLow: streamLow(_controllerColors),
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: true,
+                      onChangedLow: (value){
+                        setState(() {
+                          _selectedLow = value.toString();
+                        });
+                      },
+                      selectedLow: _selectedLow,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Cores de Tampa-$_selectedLow'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_registerDatabase('Cores de Tampa-$_selectedLow',"Cores de Tampa",_selectedLow)
+                  ),
+                ],
+              ):Container(),
+              _cont==8?Column(
+                children: [
+                  GroupStock(
+                      title: 'Cores de Chassi',
+                      subtitle: 'Cor',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      streamBuilderLow: streamLow(_controllerColors),
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: true,
+                      onChangedLow: (value){
+                        setState(() {
+                          _selectedLow = value.toString();
+                        });
+                      },
+                      selectedLow: _selectedLow,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Cores de Chassi-$_selectedLow'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_registerDatabase('Cores de Chassi-$_selectedLow',"Cores de Chassi",_selectedLow)
+                  ),
+                ],
+              ):Container(),
+              _cont==9?Column(
+                children: [
+                  GroupStock(
+                      title: 'Conector de Carga',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: false,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Conector de Carga'),
+                      showStockmin: true,
+                      showCod: false,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_registerDatabase('Conector de Carga','Conector de Carga',"")
+                  ),
+                ],
+              ):Container(),
+              _cont==10?Column(
+                children: [
+                  GroupStock(
+                      title: 'Dock de Carga',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: false,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Dock de Carga'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_registerDatabase('Dock de Carga','Dock de Carga',"")
+                  ),
+                ],
+              ):Container(),
+              _cont==11?Column(
+                children: [
+                  GroupStock(
+                      title: 'Bateria',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      showCod: true,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: false,
+                      controllerCod: _controllerCodBattery,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Bateria'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: (){
+                        _registerDatabase('Bateria','Bateria',"");
+                        _registerBattery('Bateria');
+                      }
+                  ),
+                ],
+              ):Container(),
+              _cont==12?Column(
+                children: [
+                  GroupStock(
+                      title: 'Flex Power',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: false,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Flex Power'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_registerDatabase('Flex Power','Flex Power',"")
+                  ),
+                ],
+              ):Container(),
+              _cont==13?Column(
+                children: [
+                  GroupStock(
+                      title: 'Digital',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: false,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Digital'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_registerDatabase('Digital','Digital',"")
+                  ),
+                ],
+              ):Container(),
+              _cont==14?Column(
+                children: [
+                  GroupStock(
+                      title: 'Lente da Câmera',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: false,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Lente da Câmera'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_registerDatabase('Lente da câmera','Lente da câmera',"")
+                  ),
+                ],
+              ):Container(),
+              _cont==15?Column(
+                children: [
+                  GroupStock(
+                      title: 'Gaveta do chip',
+                      subtitle: 'Cor',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: true,
+                      onChangedLow: (value){
+                        setState(() {
+                          _selectedLow = value.toString();
+                        });
+                      },
+                      selectedLow: _selectedLow,
+                      streamBuilderLow: streamLow(_controllerColors),
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Gaveta do chip-$_selectedLow'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=> _registerDatabase('Gaveta do chip-$_selectedLow','Gaveta do chip',_selectedLow)
+                  ),
+                ],
+              ):Container(),
+              _cont==16?Column(
+                children: [
+                  GroupStock(
+                      title: 'Câmera Frontal',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: false,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Câmera Frontal'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_registerDatabase('Câmera Frontal','Câmera Frontal',"")
+                  ),
+                ],
+              ):Container(),
+              _cont==17?Column(
+                children: [
+                  GroupStock(
+                      title: 'Câmera Traseira',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: false,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Câmera Traseira'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_registerDatabase('Câmera Traseira','Câmera Traseira',"")
+                  ),
+                ],
+              ):Container(),
+              _cont==18?Column(
+                children: [
+                  GroupStock(
+                      title: 'Falante Auricular',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: false,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Falante Auricular'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_registerDatabase('Falante Auricular','Falante Auricular',"")
+                  ),
+                ],
+              ):Container(),
+              _cont==19?Column(
+                children: [
+                  GroupStock(
+                      title: 'Campainha',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: false,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Campainha'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_registerDatabase('Campainha','Campainha',"")
+                  ),
+                ],
+              ):Container(),
+              _cont==20?Column(
+                children: [
+                  GroupStock(
+                      title: 'Flex Sub Placa',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      showDropDownUp: false,
+                      showDropDownLow: false,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Flex Sub Placa'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: null,
+                      onTapRegister: (){
+                        _registerDatabase('Flex Sub Placa','Flex Sub Placa',"");
+                        Navigator.pushReplacementNamed(context, "/mobiles");
+                      }
+                  ),
+                ],
+              ):Container(),
             ],
           ),
         ),

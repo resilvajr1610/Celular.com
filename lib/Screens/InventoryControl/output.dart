@@ -1,13 +1,12 @@
 import 'dart:async';
-
 import 'package:celular/widgets/buttonsRegister.dart';
-import 'package:celular/widgets/dropDownItens.dart';
 import 'package:celular/widgets/groupStock.dart';
 import 'package:celular/widgets/inputSearch.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import '../../Model/PartsModel.dart';
+import '../../Model/UpdatesModel.dart';
 import '../../Model/export.dart';
 import '../../widgets/dividerList.dart';
 import '../../widgets/itemsList.dart';
@@ -31,6 +30,10 @@ class _OutputState extends State<Output> {
   Future resultsLoaded;
   bool _visibility=false;
   String _id;
+  String _part;
+  String _brand;
+  String _item;
+  UpdatesModel _updatesModel;
 
   _data() async {
     var data = await db.collection("pecas").get();
@@ -66,20 +69,42 @@ class _OutputState extends State<Output> {
   }
 
   _updateValue(){
+
+    _updatesModel = UpdatesModel.createId();
+
+    _updatesModel.type = 'saida';
+    _updatesModel.quantity = _controllerStock.text;
+    _updatesModel.part = _part;
+    _updatesModel.brand = _brand;
+    _updatesModel.date = DateTime.now().toString();
+    _updatesModel.price = _controllerPriceSale.text;
+    _updatesModel.item = _item;
+
     db
         .collection("pecas")
         .doc(_id)
         .update({
       "precoVenda":_controllerPriceSale.text,
       "estoque":_controllerStock.text
-    }).then((_){
-      _controllerStock.clear();
-      _controllerPriceSale.clear();
-      _id = "";
-      setState(() {
-        _visibility = false;
-        _data();
+    }).then((_) {
+
+      db.collection("historicoPrecos")
+          .doc(_updatesModel.id)
+          .set(_updatesModel.toMap())
+          .then((_){
+        _controllerStock.clear();
+        _controllerPriceSale.clear();
+        _id = "";
+        _part = "";
+        _brand = "";
+        _item = "";
+
+        setState(() {
+          _visibility = false;
+          _data();
+        });
       });
+
     });
   }
 
@@ -141,9 +166,11 @@ class _OutputState extends State<Output> {
                         DocumentSnapshot item = _resultsList[index];
 
                         _id        = item["id"];
-                        String items    = item["item"];
+                        _item   = item["item"];
                         String stock    = item["estoque"]??"";
                         String priceSale= item["precoVenda"]??"";
+                        _brand    = item["marca"]??"";
+                        _part    = item["peca"]??"";
 
                         return ItemsList(
                           onTapItem: (){
@@ -153,7 +180,7 @@ class _OutputState extends State<Output> {
                               _visibility=true;
                             });
                           },
-                          data: items,
+                          data: _item,
                           showDelete: false,
                         );
                       });

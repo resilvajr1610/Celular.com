@@ -1,4 +1,5 @@
 import 'package:brasil_fields/formatter/real_input_formatter.dart';
+import 'package:celular/Model/colors.dart';
 import 'package:celular/widgets/dropDownItens.dart';
 import 'package:celular/widgets/textTitle.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,7 @@ class GroupStock extends StatelessWidget {
   final bool showDropDownLow;
   final bool showCod;
   final bool showDisplay;
+  final bool sendPhoto;
   final String titlePrice;
   final String title;
   final String subtitle;
@@ -49,6 +51,7 @@ class GroupStock extends StatelessWidget {
     @required this.showDropDownLow,
     @required this.showCod,
     this.onTapCamera,
+    this.sendPhoto,
     this.streamBuilderUp,
     this.streamBuilderLow,
     this.onChangedUp,
@@ -143,7 +146,12 @@ class GroupStock extends StatelessWidget {
                 )
               ],
             ),
-            showCamera? ButtonCamera(
+            showCamera? sendPhoto?Column(
+              children: [
+                Icon(Icons.done,color: PaletteColor.green),
+                Text('Foto enviada!',style: TextStyle(color: PaletteColor.green,fontSize: 10),)
+              ],
+            ):ButtonCamera(
                 onTap: this.onTapCamera,
                 width: width*0.2
             ):Container()

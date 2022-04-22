@@ -217,22 +217,34 @@ class _ColorsScreenState extends State<ColorsScreen> {
                 child: StreamBuilder(
                   stream: _controllerColors.stream,
                   builder: (context, snapshot) {
-                    return ListView.separated(
-                        separatorBuilder: (context, index) => DividerList(),
-                        itemCount: _resultsList.length,
-                        itemBuilder: (BuildContext context, index) {
-                          DocumentSnapshot item = _resultsList[index];
 
-                          String id        = item["id"];
-                          String color    = item["cor"];
+                    switch (snapshot.connectionState) {
+                    case ConnectionState.none:
+                    case ConnectionState.waiting:
+                    case ConnectionState.active:
+                    case ConnectionState.done:
+                      if(_resultsList.length == 0){
+                      return Center(
+                      child: Text('Sem dados!',style: TextStyle(fontSize: 20),)
+                      );
+                      }else {
+                        return ListView.separated(
+                            separatorBuilder: (context, index) => DividerList(),
+                            itemCount: _resultsList.length,
+                            itemBuilder: (BuildContext context, index) {
+                              DocumentSnapshot item = _resultsList[index];
 
-                          return ItemsList(
-                            showDelete: true,
-                            data: color,
-                            onPressedDelete: () =>
-                                _showDialogDelete(id,color),
-                          );
-                        });
+                              String id = item["id"];
+                              String color = item["cor"];
+
+                              return ItemsList(
+                                showDelete: true,
+                                data: color,
+                                onPressedDelete: () => _showDialogDelete(id, color),
+                              );
+                            });
+                      }
+                    }
                   },
                 ),
               ),

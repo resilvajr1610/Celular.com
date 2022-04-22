@@ -1,12 +1,16 @@
 import 'dart:async';
-
+import 'dart:io';
 import 'package:celular/widgets/dividerList.dart';
 import 'package:celular/widgets/exampleDataReport.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_full_pdf_viewer/full_pdf_viewer_scaffold.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_extend/share_extend.dart';
 import '../../Model/PartsModel.dart';
 import '../../Model/export.dart';
 import '../../widgets/inputSearch.dart';
+import 'package:pdf/widgets.dart' as pdfLib;
 
 class StockReport extends StatefulWidget {
   const StockReport({Key key}) : super(key: key);
@@ -18,8 +22,9 @@ class StockReport extends StatefulWidget {
 class _StockReportState extends State<StockReport> {
 
   TextEditingController _controllerSearch = TextEditingController();
-  FirebaseFirestore db = FirebaseFirestore.instance;
   var _controllerItem = StreamController<QuerySnapshot>.broadcast();
+  FirebaseFirestore db = FirebaseFirestore.instance;
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   List _allResults = [];
   List _resultsList = [];
   Future resultsLoaded;
@@ -57,6 +62,136 @@ class _StockReportState extends State<StockReport> {
     });
   }
 
+  _createPdf(BuildContext context)async{
+
+    double width = 80;
+
+    final pdfLib.Document pdf = pdfLib.Document(deflate: zlib.encode);
+
+    pdf.addPage(pdfLib.MultiPage(
+        build: (context)=>[
+
+          pdfLib.Container(
+              padding: pdfLib.EdgeInsets.symmetric(vertical: 4),
+              child: pdfLib.Text('Relatório de Estoque',style: pdfLib.TextStyle(fontSize: 30))
+          ),
+          pdfLib.Container(
+              padding: pdfLib.EdgeInsets.symmetric(vertical: 4),
+              child: pdfLib.Text(DateTime.now().toString())
+          ),
+          pdfLib.Row(
+            mainAxisAlignment: pdfLib.MainAxisAlignment.spaceBetween,
+            children: [
+              pdfLib.Container(
+                padding: pdfLib.EdgeInsets.symmetric(vertical: 5),
+                  width: 120,
+                  child: pdfLib.Text('Marca')
+              ),
+              pdfLib.Container(
+                  width: 90,
+                  child: pdfLib.Text('Modelo')
+              ),
+              pdfLib.Container(
+                  width: 100,
+                  child: pdfLib.Text('Peça')
+              ),
+              pdfLib.Container(
+                  width: 80,
+                  child: pdfLib.Text('Cor')
+              ),
+              pdfLib.Container(
+                  width: 60,
+                  child: pdfLib.Text('Mínimo')
+              ),
+              pdfLib.Container(
+                  width: 70,
+                  child: pdfLib.Text('Estoque')
+              ),
+            ],
+          ),
+
+          pdfLib.ListView.builder(
+              itemCount: _resultsList.length,
+              itemBuilder: (context, index) {
+                DocumentSnapshot item = _resultsList[index];
+
+                String id = item["id"];
+                String stock = item["estoque"] ?? "";
+                String stockMin = item["estoqueMinimo"] ?? "";
+                String peca = item["peca"] ?? "";
+                String brands = item["marca"] ?? "";
+                String model = item["modelo"] ?? "";
+                String description = item["descricao"] ?? "";
+                String color = item["cor"] ?? "";
+
+                int dif = int.parse(stockMin) - int.parse(stock);
+
+                return pdfLib.Row(
+                  mainAxisAlignment: pdfLib.MainAxisAlignment.spaceBetween,
+                  children: [
+                    pdfLib.Container(
+                        padding: pdfLib.EdgeInsets.symmetric(vertical: 2),
+                        width: 90,
+                        child: pdfLib.Text(brands)
+                    ),
+                    pdfLib.Container(
+                        width: width,
+                        child: pdfLib.Text(model)
+                    ),
+                    pdfLib.Container(
+                        width: width,
+                        child: pdfLib.Text(description)
+                    ),
+                    pdfLib.Container(
+                        width: 40,
+                        child: pdfLib.Text(color==""?"N/C":color)
+                    ),
+                    pdfLib.Container(
+                        alignment: pdfLib.Alignment.centerRight,
+                        width: 50,
+                        child: pdfLib.Text(stockMin)
+                    ),
+                    pdfLib.Container(
+                        width: 50,
+                        alignment: pdfLib.Alignment.centerRight,
+                        child: pdfLib.Text(stock)
+                    ),
+                  ],
+                );
+              }
+          ),
+        ]
+    ));
+
+    final String dir = (await getApplicationDocumentsDirectory()).path;
+
+    final String path = '$dir/AlertaEstoque.pdf';
+
+    final File file = File(path);
+    file.writeAsBytesSync(pdf.save());
+
+    Navigator.push(context,MaterialPageRoute(builder: (context)=>PDFScreen(path)));
+
+  }
+
+  void showSnackBar(BuildContext context, String text){
+    final snackbar = SnackBar(
+      backgroundColor: Colors.red,
+      content: Row(
+        children: [
+          Icon(Icons.info_outline,color: Colors.white),
+          SizedBox(width: 20),
+          Expanded(
+            child: Text(text,
+              style: TextStyle(fontSize: 16),),
+          ),
+        ],
+      ),
+    );
+
+    _scaffoldKey.currentState.showSnackBar(snackbar);
+  }
+
   @override
   void initState() {
     super.initState();
@@ -83,10 +218,7 @@ class _StockReportState extends State<StockReport> {
     double height = MediaQuery.of(context).size.height;
 
     return Scaffold(
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: (){},
-        label: Text('Gerar PDF'),
-      ),
+      key: _scaffoldKey,
       appBar: AppBar(
         centerTitle: true,
         titleTextStyle: TextStyle(
@@ -112,7 +244,7 @@ class _StockReportState extends State<StockReport> {
                 InputSearch(controller: _controllerSearch),
                 DividerList(),
                 Container(
-                  height: height * 0.4,
+                  height: height * 0.6,
                   child: StreamBuilder(
                     stream: _controllerItem.stream,
                     builder: (context, snapshot) {
@@ -124,28 +256,68 @@ class _StockReportState extends State<StockReport> {
 
                             String id        = item["id"];
                             String stock    = item["estoque"]??"";
-                            String peca    = item["peca"]??"";
-                            String selecionado2    = item["selecionado2"]??"";
+                            String peca    = item["descricao"]??"";
+                            String cor    = item["cor"]??"";
                             String foto    = item["foto"]??"";
                             String brands    = item["marca"]??"";
+                            String model    = item["modelo"]??"";
+                            String ref    = item["referencia"]??"";
 
                             return ExampleDataReport(
                               showImagem: true,
                               photo: foto,
                               title: peca,
+                              model: model,
                               brands: brands,
-                              colorsUp: selecionado2,
+                              ref: ref,
+                              colorsUp: cor==""?"N/C":cor,
                               unidUp: int.parse(stock),
                             );
                           });
                     },
                   ),
                 ),
+                ElevatedButton(
+                  child:Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('Gerar PDF'),
+                      Icon(Icons.description,
+                        color: PaletteColor.white,
+                      ),
+                    ],
+                  ) ,
+                  onPressed:()=> _resultsList.length!=0?_createPdf(context):showSnackBar(context, "Sem dados para o PDF"),
+                )
               ],
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class PDFScreen extends StatelessWidget {
+  PDFScreen(this.pathPDF);
+
+  final String pathPDF;
+
+  @override
+  Widget build(BuildContext context) {
+    return PDFViewerScaffold(
+        appBar:AppBar(
+          title: Text('Relatório de Estoque',style: TextStyle(fontSize: 15),),
+          actions: [
+            IconButton(
+                onPressed: (){
+                  ShareExtend.share(pathPDF, 'file',sharePanelTitle: "Enviar PDF");
+                },
+                icon: Icon(Icons.share)
+            )
+          ],
+        ) ,
+        path: pathPDF
     );
   }
 }
