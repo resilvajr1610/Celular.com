@@ -16,6 +16,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   _logar()async{
 
+    //auth.signOut();
     auth.signInWithEmailAndPassword(
         email: "adm@gmail.com",
         password: "admcelular123"
@@ -23,7 +24,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
       print("usuario logado");
 
-    });
+    }).catchError((error){
+      auth.signInWithEmailAndPassword(
+        email: "admcelular@gmail.com",
+        password: "admcelular123",
+      ).then((value) => print("usuario logado segundo usuario"));
+    }
+    );
   }
 
   @override
