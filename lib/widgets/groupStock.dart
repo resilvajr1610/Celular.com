@@ -99,11 +99,11 @@ class GroupStock extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextTitle(text: 'Estoque',fonts: 14),
+                TextTitle(text: showPrice?'Estoque':"Quantidade",fonts: 14),
                 InputRegister(
                   keyboardType: TextInputType.number,
                   controller: this.controllerStock,
-                  hint: '01',
+                  hint: '00',
                   width: width*0.2,
                   fonts: 14,
                 ),
@@ -128,7 +128,7 @@ class GroupStock extends StatelessWidget {
                 showStockmin? InputRegister(
                   keyboardType: TextInputType.number,
                   controller: this.controllerStockMin,
-                  hint: '01',
+                  hint: '00',
                   width: width*0.2,
                   fonts: 14,
                 ):Container(),

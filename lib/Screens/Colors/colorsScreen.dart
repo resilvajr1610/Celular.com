@@ -114,7 +114,6 @@ class _ColorsScreenState extends State<ColorsScreen> {
                   onTap: () => Navigator.pop(context),
                   text: 'Cancelar',
                   color: PaletteColor.greyButton),
-              Spacer(),
               ButtonsRegister(
                   onTap: () => _registerColors(),
                   text: 'Incluir',
@@ -189,7 +188,7 @@ class _ColorsScreenState extends State<ColorsScreen> {
             fontWeight: FontWeight.w700,
           ),
           backgroundColor: PaletteColor.appBar,
-          title: Text('COR'),
+          title: Text('CORES'),
           actions: [
             Container(
               padding: EdgeInsets.symmetric(horizontal: 10),

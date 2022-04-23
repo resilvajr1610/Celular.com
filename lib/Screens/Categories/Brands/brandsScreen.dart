@@ -113,7 +113,6 @@ class _BrandsScreenState extends State<BrandsScreen> {
                   onTap: () => Navigator.pop(context),
                   text: 'Cancelar',
                   color: PaletteColor.greyButton),
-              Spacer(),
               ButtonsRegister(
                   onTap: () => _registerBrands(),
                   text: 'Incluir',
@@ -189,7 +188,7 @@ class _BrandsScreenState extends State<BrandsScreen> {
             fontWeight: FontWeight.w700,
           ),
           backgroundColor: PaletteColor.appBar,
-          title: Text('MARCA'),
+          title: Text('MARCAS'),
           actions: [
             Container(
               padding: EdgeInsets.symmetric(horizontal: 10),
@@ -244,8 +243,8 @@ class _BrandsScreenState extends State<BrandsScreen> {
                                   return ItemsList(
                                     data: brands,
                                     showDelete: true,
-                                    onPressedDelete: () =>
-                                        _showDialogDelete(id, brands),
+                                    onPressedDelete: () =>_showDialogDelete(id, brands),
+                                    onPressedEdit: null,
                                   );
                                 });
                           }

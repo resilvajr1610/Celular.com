@@ -9,7 +9,7 @@ class MobilesModel{
 
   MobilesModel();
 
-  MobilesModel.fromSnapshot(DocumentSnapshot snapshot):_mobiles = snapshot['celular'];
+  MobilesModel.fromSnapshot(DocumentSnapshot snapshot):_mobiles = snapshot['item'];
 
   MobilesModel.fromDocumentSnapshot(DocumentSnapshot documentSnapshot){
     this.id = documentSnapshot.id;

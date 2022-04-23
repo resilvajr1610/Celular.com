@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../Model/export.dart';
-import 'buttonsRegister.dart';
 import 'inputRegister.dart';
 
 class ShowDialogRegister extends StatelessWidget {
@@ -22,10 +21,11 @@ class ShowDialogRegister extends StatelessWidget {
     return AlertDialog(
       title: Center(child: Text(this.title)),
       titleTextStyle: TextStyle(color: PaletteColor.darkGrey,fontSize: 20),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
+      content: Row(
         children: [
-          InputRegister(keyboardType: TextInputType.text, controller: this.controllerRegister, hint: this.hint,fonts: 20)
+          Expanded(
+              child:  InputRegister(keyboardType: TextInputType.text, controller: this.controllerRegister, hint: this.hint,fonts: 20)
+          ),
         ],
       ),
       contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),

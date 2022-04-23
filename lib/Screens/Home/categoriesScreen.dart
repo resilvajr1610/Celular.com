@@ -40,13 +40,13 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
             child: Column(
               children: [
                 ButtonsEnterScreens(
-                    text: "Marca",
+                    text: "Marcas",
                     onPressed: () => Navigator.pushNamed(context, "/brands")),
                 ButtonsEnterScreens(
-                    text: "Celular",
+                    text: "Peças",
                     onPressed: () => Navigator.pushNamed(context, "/mobiles")),
                 ButtonsEnterScreens(
-                    text: "Cor",
+                    text: "Cores",
                     onPressed: () => Navigator.pushNamed(context, "/colors")),
               ],
             ),

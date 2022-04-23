@@ -12,6 +12,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
+import '../../../Model/UpdatesModel.dart';
 import '../../../Model/export.dart';
 import '../../../widgets/dropDownItens.dart';
 
@@ -30,7 +31,6 @@ class _PartsResgisterState extends State<PartsResgister> {
   final _controllerColors = StreamController<QuerySnapshot>.broadcast();
   final _controllerDisplay = StreamController<QuerySnapshot>.broadcast();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
-  MobilesModel _mobilesModel;
   PartsModel _partsModel;
   TextEditingController _controllerModel = TextEditingController();
   TextEditingController _controllerRef = TextEditingController();
@@ -40,6 +40,7 @@ class _PartsResgisterState extends State<PartsResgister> {
   TextEditingController _controllerPriceSale = TextEditingController();
   TextEditingController _controllerCodBattery = TextEditingController();
   static double fonts=20.0;
+  UpdatesModel _updatesModel;
   bool _updatePhoto = false;
   bool _switchPCB = false;
   bool _showCamera = true;
@@ -347,18 +348,11 @@ class _PartsResgisterState extends State<PartsResgister> {
         .set(dateUpdate);
   }
 
-  _registerMobile(){
-    _mobilesModel = MobilesModel.createId();
-
-    _mobilesModel.mobiles = _controllerModel.text;
-    _mobilesModel.brands = _selectedBrands;
-
-    db.collection('celularPesquisa')
-        .doc(_mobilesModel.id)
-        .set(_mobilesModel.toMap());
-  }
-
   _registerDatabase(String part,String description,String color){
+
+    if(part=="PCB"){
+      _partsModel = PartsModel.createId();
+    }
 
     if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
         && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
@@ -368,12 +362,10 @@ class _PartsResgisterState extends State<PartsResgister> {
         && _selectedLow!="" &&_selectedLow !=null
         && _controllerRef.text!="" &&_controllerRef.text !=null
         && _selectedBrands!="" && _selectedBrands!=null
-        && _selectedUp!="" && _selectedUp!=null
-        && _selectedLow!="" && _selectedLow!=null
         && _controllerModel.text!="" &&_controllerModel.text !=null
         && _sendPhoto
     ){
-      Map<String,dynamic> dateUpdate = {
+      Map<String,dynamic> dateUpdate = part!="PCB"?{
         "selecionado1" : _selectedUp,
         "selecionado2" : _selectedLow,
         "estoque" : _controllerStock.text,
@@ -387,29 +379,71 @@ class _PartsResgisterState extends State<PartsResgister> {
         "modelo":_controllerModel.text,
         "descricao":description,
         "cor":color,
+      }:{
+        "marca": _selectedBrands,
+        "peca" : part,
+        "descricao":description,
+        "modelo":_controllerModel.text,
+        "item":_selectedBrands+"_"+_controllerModel.text+"_"+part,
+        "id":_partsModel.id,
+        "selecionado1" : "",
+        "selecionado2" : "",
+        "estoque" : "",
+        "estoqueMinimo" : "",
+        "precoCompra" : "",
+        "precoVenda" : "",
+        "referencia" : part,
+        "cor":""
       };
 
-      db.collection("pecas")
-          .doc(_partsModel.id)
-          .update(dateUpdate).then((_){
-        db.collection('celulares')
-            .doc(_controllerModel.text)
-            .set({
-          "celular":_controllerModel.text,
-          "marca":_selectedBrands
-        }).then((value){
-          setState(() {
-            _controllerStock.clear();
-            _controllerStockMin.clear();
-            _controllerPricePuschace.clear();
-            _controllerPriceSale.clear();
-            description="";
-            color="";
-            part="";
-            _sendPhoto=false;
+      if(part=="PCB"){
+        db.collection("pecas")
+            .doc(_partsModel.id)
+            .set(dateUpdate);
+
+      }else{
+
+        _updatesModel = UpdatesModel.createId();
+
+        _updatesModel.type = 'entrada';
+        _updatesModel.quantity = _controllerStock.text;
+        _updatesModel.part = part;
+        _updatesModel.brand = _selectedBrands;
+        _updatesModel.date = DateTime.now().toString();
+        _updatesModel.price = _controllerPriceSale.text;
+        _updatesModel.item = _selectedBrands+"_"+_controllerModel.text+"_"+part;
+
+        db.collection("pecas")
+            .doc(_partsModel.id)
+            .update(dateUpdate).then((_){
+          db.collection('celulares')
+              .doc(_controllerModel.text)
+              .set({
+            "celular":_controllerModel.text,
+            "marca":_selectedBrands
+
+          }).then((value){
+
+            db.collection("historicoPrecos")
+                .doc(_updatesModel.id)
+                .set(_updatesModel.toMap());
+
+          }).then((value){
+
+            setState(() {
+              _controllerStock.clear();
+              _controllerStockMin.clear();
+              _controllerPricePuschace.clear();
+              _controllerPriceSale.clear();
+              description="";
+              color="";
+              part="";
+              _sendPhoto=false;
+            });
+
           });
         });
-      });
+      }
     }else{
       String text = 'Preencha todos os dados e foto para continuar';
       showSnackBar(context,text);
@@ -448,7 +482,6 @@ class _PartsResgisterState extends State<PartsResgister> {
     _addListenerColors();
     _addListenerDisplay();
     _partsModel = PartsModel();
-    _mobilesModel = MobilesModel();
   }
 
   @override
@@ -465,7 +498,7 @@ class _PartsResgisterState extends State<PartsResgister> {
           fontWeight: FontWeight.w700,
         ),
         backgroundColor: PaletteColor.appBar,
-        title: Text('CELULAR'),
+        title: Text('PEÇAS'),
         actions: [
           Container(
             padding: EdgeInsets.symmetric(horizontal: 10),
@@ -565,8 +598,10 @@ class _PartsResgisterState extends State<PartsResgister> {
                       onPressedBack: null,
                       onPressedForward: _forward,
                       onTapRegister: (){
-                        _registerMobile();
                         _registerDatabase('Display-$_selectedLow','Display',_selectedLow);
+                        if(_switchPCB){
+                          _registerDatabase('PCB','PCB',"");
+                        }
                       }
                   ),
                 ],

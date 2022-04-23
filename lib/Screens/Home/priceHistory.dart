@@ -30,7 +30,7 @@ class _PriceHistoryState extends State<PriceHistory> {
   Future resultsLoaded;
 
   _data() async {
-    var data = await db.collection("historicoPrecos").get();
+    var data = await db.collection("historicoPrecos").orderBy('data').get();
 
     setState(() {
       _allResults = data.docs;
@@ -111,7 +111,7 @@ class _PriceHistoryState extends State<PriceHistory> {
             InputSearch(controller: _controllerSearch),
             DividerList(),
             Container(
-              height: height * 0.7,
+              height: height/1.5,
               child: StreamBuilder(
                 stream: _controllerItem.stream,
                 builder: (context, snapshot) {

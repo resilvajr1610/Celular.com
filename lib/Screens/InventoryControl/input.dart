@@ -32,6 +32,7 @@ class _InputState extends State<Input> {
   String _part;
   String _brand;
   String _item;
+  String _stock;
   UpdatesModel _updatesModel;
 
   _data() async {
@@ -79,26 +80,28 @@ class _InputState extends State<Input> {
     _updatesModel.price = _controllerPriceSale.text;
     _updatesModel.item = _item;
 
+    int total = int.parse(_controllerStock.text)+int.parse(_stock);
+
     db
         .collection("pecas")
         .doc(_id)
         .update({
           "precoCompra":_controllerPriceSale.text,
-          "estoque":_controllerStock.text
+          "estoque":total.toString()
         }).then((_) {
 
       db.collection("historicoPrecos")
           .doc(_updatesModel.id)
           .set(_updatesModel.toMap())
           .then((_){
-            _controllerStock.clear();
-            _controllerPriceSale.clear();
-            _id = "";
-            _part = "";
-            _brand = "";
-            _item = "";
-
             setState(() {
+              _controllerStock.clear();
+              _controllerPriceSale.clear();
+              _id = "";
+              _part = "";
+              _brand = "";
+              _item = "";
+              _stock = "";
               _visibility = false;
               _data();
             });
@@ -166,9 +169,8 @@ class _InputState extends State<Input> {
                       itemBuilder: (BuildContext context, index) {
                         DocumentSnapshot item = _resultsList[index];
 
-                        _id        = item["id"];
-                        _item    = item["item"];
-                        String stock    = item["estoque"]??"";
+                        _id   = item["id"];
+                        _item = item["item"];
                         String priceSale    = item["precoCompra"]??"";
                         _brand    = item["marca"]??"";
                         _part    = item["peca"]??"";
@@ -176,9 +178,9 @@ class _InputState extends State<Input> {
                         return ItemsList(
                           onTapItem: (){
                             setState(() {
-                              _controllerStock = TextEditingController(text: stock);
-                              _controllerPriceSale = TextEditingController(text: priceSale);
                               _visibility=true;
+                              _stock="";
+                              _stock    = item["estoque"]??"";
                             });
                           },
                           data: _item,
@@ -206,7 +208,13 @@ class _InputState extends State<Input> {
                       titlePrice: 'Preço compra',
                       showCamera: false
                   ),
-                  SizedBox(height: 10),
+                  Container(
+                      padding: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
+                      alignment: Alignment.centerLeft,
+                      child: Text('Estoque atual : $_stock',
+                        style: TextStyle(color: PaletteColor.darkGrey),
+                      )
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [

@@ -33,6 +33,7 @@ class _OutputState extends State<Output> {
   String _part;
   String _brand;
   String _item;
+  String _stock;
   UpdatesModel _updatesModel;
 
   _data() async {
@@ -80,27 +81,29 @@ class _OutputState extends State<Output> {
     _updatesModel.price = _controllerPriceSale.text;
     _updatesModel.item = _item;
 
+    int total = int.parse(_stock)-int.parse(_controllerStock.text);
+
     db
         .collection("pecas")
         .doc(_id)
         .update({
       "precoVenda":_controllerPriceSale.text,
-      "estoque":_controllerStock.text
+      "estoque":total.toString()
     }).then((_) {
 
       db.collection("historicoPrecos")
           .doc(_updatesModel.id)
           .set(_updatesModel.toMap())
           .then((_){
-        _controllerStock.clear();
-        _controllerPriceSale.clear();
-        _id = "";
-        _part = "";
-        _brand = "";
-        _item = "";
-
         setState(() {
           _visibility = false;
+          _controllerStock.clear();
+          _controllerPriceSale.clear();
+          _id = "";
+          _part = "";
+          _brand = "";
+          _item = "";
+          _stock = "";
           _data();
         });
       });
@@ -175,8 +178,8 @@ class _OutputState extends State<Output> {
                         return ItemsList(
                           onTapItem: (){
                             setState(() {
-                              _controllerStock = TextEditingController(text: stock);
-                              _controllerPriceSale = TextEditingController(text: priceSale);
+                              _stock="";
+                              _stock    = item["estoque"]??"";
                               _visibility=true;
                             });
                           },
@@ -205,7 +208,13 @@ class _OutputState extends State<Output> {
                       showPrice: false,
                       titlePrice: 'Preço venda',
                       showCamera: false),
-                  SizedBox(height: 10),
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
+                    alignment: Alignment.centerLeft,
+                    child: Text('Estoque atual : $_stock',
+                      style: TextStyle(color: PaletteColor.darkGrey),
+                    )
+                  ),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceAround,
                     children: [
