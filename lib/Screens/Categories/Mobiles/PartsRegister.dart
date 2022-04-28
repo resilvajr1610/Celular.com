@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:celular/Model/MobilesModel.dart';
 import 'package:celular/Model/PartsModel.dart';
 import 'package:celular/widgets/controlRegisterParts.dart';
 import 'package:celular/widgets/groupStock.dart';
@@ -393,7 +392,8 @@ class _PartsResgisterState extends State<PartsResgister> {
         "precoCompra" : "",
         "precoVenda" : "",
         "referencia" : part,
-        "cor":""
+        "cor":"",
+        "foto":""
       };
 
       if(part=="PCB"){

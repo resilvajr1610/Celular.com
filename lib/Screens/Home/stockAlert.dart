@@ -272,6 +272,13 @@ class _StockAlertState extends State<StockAlert> {
                           String model    = item["modelo"]??"";
                           String ref    = item["referencia"]??"";
 
+                          if(stock==null || stock==""){
+                            stock ="0";
+                          }
+                          if(stockMin==null || stockMin ==""){
+                            stockMin="0";
+                          }
+
                           int dif = int.parse(stockMin)-int.parse(stock);
 
                           return dif<0?Container():Column(

@@ -17,6 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   _logar()async{
 
     //auth.signOut();
+
     auth.signInWithEmailAndPassword(
         email: "adm@gmail.com",
         password: "admcelular123"

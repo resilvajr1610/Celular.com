@@ -263,6 +263,10 @@ class _StockReportState extends State<StockReport> {
                             String model    = item["modelo"]??"";
                             String ref    = item["referencia"]??"";
 
+                            if(stock==null || stock==""){
+                              stock ="0";
+                            }
+
                             return ExampleDataReport(
                               showImagem: true,
                               photo: foto,
