@@ -108,11 +108,8 @@ class _StockAlertState extends State<StockAlert> {
         itemBuilder: (context, index) {
           DocumentSnapshot item = _resultsList[index];
 
-          String id = item["id"];
           String stock = ErrorList(item,"estoque") ?? "";
           String stockMin = ErrorList(item,"estoqueMinimo") ?? "";
-          String peca = ErrorList(item,"peca") ?? "";
-          String selecionado2 = ErrorList(item,"selecionado2") ?? "";
           String brands = ErrorList(item,"marca") ?? "";
           String model = ErrorList(item,"modelo") ?? "";
           String description = ErrorList(item,"descricao") ?? "";

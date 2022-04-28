@@ -40,6 +40,10 @@ class _LoginState extends State<Login> {
           setState(() {
             _error = "Digite um e-mail válido!";
           });
+        }else if(e.code =="email-already-exists"){
+          setState(() {
+            _error = "E-mail já esta cadastrado!";
+          });
         }else{
           setState(() {
             _error = e.code;
