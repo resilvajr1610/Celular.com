@@ -1,7 +1,54 @@
 export '../widgets/buttonsEnterScreens.dart';
+export '../widgets/dropDownItens.dart';
+export '../widgets/controlRegisterParts.dart';
+export '../widgets/groupStock.dart';
+export '../widgets/inputRegister.dart';
+export '../widgets/textTitle.dart';
+export '../widgets/inputSearch.dart';
+export '../widgets/exampleDataReport.dart';
+export '../widgets/dividerList.dart';
+export '../widgets/buttonsAdd.dart';
+export '../widgets/itemsList.dart';
+export '../widgets/buttonsRegister.dart';
+export '../widgets/showDialogRegister.dart';
+export '../widgets/exampleDataHistory.dart';
+export '../widgets/buttonCamera.dart';
+
 export '../Screens/splash.dart';
-export '../Screens/Home/homeScreen.dart';
-export '../Screens/Home/categoriesScreen.dart';
+export '../Screens/Categories/Mobiles/PartsRegister.dart';
 export '../Screens/Categories/Brands/brandsScreen.dart';
 export '../Screens/Categories/Mobiles/mobilesScreen.dart';
+export '../Screens/Colors/colorsScreen.dart';
+export '../Screens/InventoryControl/output.dart';
+export '../Screens/InventoryControl/Input.dart';
+export '../Screens/Home/stockAlert.dart';
+export '../Screens/Home/priceHistory.dart';
+export '../Screens/Home/inventoryControlScreen.dart';
+export '../Screens/Home/Login.dart';
+export '../Screens/Home/homeScreen.dart';
+export '../Screens/Home/categoriesScreen.dart';
+
+export '../Model/PartsModel.dart';
+export '../Model/RouteGenerator.dart';
+export '../Model/UpdatesModel.dart';
 export '../Model/colors.dart';
+export '../Model/MobilesModel.dart';
+export '../Model/BrandsModel.dart';
+export '../Model/ColorsModel.dart';
+export '../Model/ErrorList.dart';
+
+export 'package:firebase_core/firebase_core.dart';
+export 'package:flutter/material.dart';
+export 'package:flutter/services.dart';
+export 'package:image_picker/image_picker.dart';
+export 'package:cloud_firestore/cloud_firestore.dart';
+export 'package:firebase_storage/firebase_storage.dart';
+export 'package:firebase_auth/firebase_auth.dart';
+export 'package:share_extend/share_extend.dart';
+export 'package:flutter_full_pdf_viewer/flutter_full_pdf_viewer.dart';
+export 'package:path_provider/path_provider.dart';
+export 'package:intl/intl.dart';
+export 'package:brasil_fields/formatter/real_input_formatter.dart';
+
+export 'dart:async';
+export 'dart:io';

@@ -1,14 +1,4 @@
-import 'dart:async';
-import 'package:celular/Model/PartsModel.dart';
-import 'package:celular/Model/UpdatesModel.dart';
-import 'package:celular/widgets/buttonsRegister.dart';
-import 'package:celular/widgets/groupStock.dart';
-import 'package:celular/widgets/inputSearch.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import '../../Model/export.dart';
-import '../../widgets/dividerList.dart';
-import '../../widgets/itemsList.dart';
 
 class Input extends StatefulWidget {
   const Input({Key key}) : super(key: key);
@@ -150,7 +140,7 @@ class _InputState extends State<Input> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 10),
             width: 55,
-            child: Image.asset("assets/celularcom_ImageView_32-41x41.png"),
+            child: Image.asset("assets/logoBig.png"),
           ),
         ],
       ),
@@ -170,17 +160,17 @@ class _InputState extends State<Input> {
                         DocumentSnapshot item = _resultsList[index];
 
                         _id   = item["id"];
-                        _item = item["item"];
-                        String priceSale    = item["precoCompra"]??"";
-                        _brand    = item["marca"]??"";
-                        _part    = item["peca"]??"";
+                        _item = ErrorList(item,"item");
+                        String priceSale = ErrorList(item,"precoCompra");
+                        _brand    = ErrorList(item,"marca");
+                        _part    = ErrorList(item,"peca");
 
                         return ItemsList(
                           onTapItem: (){
                             setState(() {
                               _visibility=true;
                               _stock="";
-                              _stock    = item["estoque"]??"";
+                              _stock = ErrorList(item,"estoque")??"";
                             });
                           },
                           data: _item,

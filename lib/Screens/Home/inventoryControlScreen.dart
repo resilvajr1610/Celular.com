@@ -1,6 +1,3 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import '../../Model/colors.dart';
 import '../../Model/export.dart';
 
 class InventoryControlScreen extends StatefulWidget {
@@ -30,7 +27,7 @@ class _InventoryControlScreenState extends State<InventoryControlScreen> {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 10),
               width: 55,
-              child: Image.asset("assets/celularcom_ImageView_32-41x41.png"),
+              child: Image.asset("assets/logoBig.png"),
             ),
           ],
         ),

@@ -1,15 +1,4 @@
-import 'dart:async';
-import 'dart:io';
-import 'package:celular/widgets/dividerList.dart';
-import 'package:celular/widgets/exampleDataReport.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter_full_pdf_viewer/full_pdf_viewer_scaffold.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:share_extend/share_extend.dart';
-import '../../Model/PartsModel.dart';
 import '../../Model/export.dart';
-import '../../widgets/inputSearch.dart';
 import 'package:pdf/widgets.dart' as pdfLib;
 
 class StockReport extends StatefulWidget {
@@ -116,13 +105,20 @@ class _StockReportState extends State<StockReport> {
                 DocumentSnapshot item = _resultsList[index];
 
                 String id = item["id"];
-                String stock = item["estoque"] ?? "";
-                String stockMin = item["estoqueMinimo"] ?? "";
-                String peca = item["peca"] ?? "";
-                String brands = item["marca"] ?? "";
-                String model = item["modelo"] ?? "";
-                String description = item["descricao"] ?? "";
-                String color = item["cor"] ?? "";
+                String stock = ErrorList(item,"estoque") ?? "";
+                String stockMin = ErrorList(item,"estoqueMinimo") ?? "";
+                String peca = ErrorList(item,"peca") ?? "";
+                String brands = ErrorList(item,"marca") ?? "";
+                String model = ErrorList(item,"modelo") ?? "";
+                String description = ErrorList(item,"descricao") ?? "";
+                String color = ErrorList(item,"cor") ?? "";
+
+                if(stock=="" || stock=="sem dados"){
+                  stock ="0";
+                }
+                if(stockMin=="" || stockMin=="sem dados"){
+                  stockMin ="0";
+                }
 
                 int dif = int.parse(stockMin) - int.parse(stock);
 
@@ -232,7 +228,7 @@ class _StockReportState extends State<StockReport> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 10),
             width: 55,
-            child: Image.asset("assets/celularcom_ImageView_32-41x41.png"),
+            child: Image.asset("assets/logoBig.png"),
           ),
         ],
       ),
@@ -255,15 +251,15 @@ class _StockReportState extends State<StockReport> {
                             DocumentSnapshot item = _resultsList[index];
 
                             String id        = item["id"];
-                            String stock    = item["estoque"]??"";
-                            String peca    = item["descricao"]??"";
-                            String cor    = item["cor"]??"";
-                            String foto    = item["foto"]??"";
-                            String brands    = item["marca"]??"";
-                            String model    = item["modelo"]??"";
-                            String ref    = item["referencia"]??"";
+                            String stock    = ErrorList(item,"estoque")??"";
+                            String peca    = ErrorList(item,"descricao")??"";
+                            String cor    = ErrorList(item,"cor")??"";
+                            String foto    = ErrorList(item,"foto")??"";
+                            String brands    = ErrorList(item,"marca")??"";
+                            String model    = ErrorList(item,"modelo")??"";
+                            String ref    = ErrorList(item,"referencia")??"";
 
-                            if(stock==null || stock==""){
+                            if(stock==null || stock=="" || stock=="sem dados"){
                               stock ="0";
                             }
 

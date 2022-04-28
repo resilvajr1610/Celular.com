@@ -1,6 +1,3 @@
-import 'package:celular/Screens/Home/homeScreen.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import '../Model/export.dart';
 
 class Splash extends StatefulWidget {
@@ -37,7 +34,6 @@ class _SplashState extends State<Splash> {
 
   @override
   Widget build(BuildContext context) {
-    double width = MediaQuery.of(context).size.width;
     double height = MediaQuery.of(context).size.height;
     return Scaffold(
         backgroundColor: PaletteColor.appBar,
@@ -45,12 +41,7 @@ class _SplashState extends State<Splash> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              SizedBox(
-                height: 180,
-                width: 182,
-                child:
-                Image.asset("assets/celularcom_ImageView_19-182x180.png"),
-              ),
+              Image.asset("assets/logoMedium.png",width: height*0.3,height: height*0.3),
               SizedBox(height: 30),
               CircularProgressIndicator(color: PaletteColor.white)
             ],

@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
-
-import '../Model/colors.dart';
+import '../Model/export.dart';
 
 class ButtonsEnterScreens extends StatelessWidget {
 

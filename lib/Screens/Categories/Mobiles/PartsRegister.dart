@@ -1,19 +1,4 @@
-import 'dart:async';
-import 'dart:io';
-import 'package:celular/Model/PartsModel.dart';
-import 'package:celular/widgets/controlRegisterParts.dart';
-import 'package:celular/widgets/groupStock.dart';
-import 'package:celular/widgets/inputRegister.dart';
-import 'package:celular/widgets/textTitle.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:image_picker/image_picker.dart';
-import '../../../Model/UpdatesModel.dart';
 import '../../../Model/export.dart';
-import '../../../widgets/dropDownItens.dart';
 
 class PartsResgister extends StatefulWidget {
   const PartsResgister({Key key}) : super(key: key);
@@ -374,7 +359,7 @@ class _PartsResgisterState extends State<PartsResgister> {
         "referencia" : _controllerRef.text,
         "peca" : part,
         "marca": _selectedBrands,
-        "item":_selectedBrands+"_"+_controllerModel.text+"_"+part,
+        "item":_selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text,
         "modelo":_controllerModel.text,
         "descricao":description,
         "cor":color,
@@ -383,7 +368,7 @@ class _PartsResgisterState extends State<PartsResgister> {
         "peca" : part,
         "descricao":description,
         "modelo":_controllerModel.text,
-        "item":_selectedBrands+"_"+_controllerModel.text+"_"+part,
+        "item":_selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text,
         "id":_partsModel.id,
         "selecionado1" : "",
         "selecionado2" : "",
@@ -411,7 +396,7 @@ class _PartsResgisterState extends State<PartsResgister> {
         _updatesModel.brand = _selectedBrands;
         _updatesModel.date = DateTime.now().toString();
         _updatesModel.price = _controllerPriceSale.text;
-        _updatesModel.item = _selectedBrands+"_"+_controllerModel.text+"_"+part;
+        _updatesModel.item = _selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text;
 
         db.collection("pecas")
             .doc(_partsModel.id)
@@ -503,7 +488,7 @@ class _PartsResgisterState extends State<PartsResgister> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 10),
             width: 55,
-            child: Image.asset("assets/celularcom_ImageView_32-41x41.png"),
+            child: Image.asset("assets/logoBig.png"),
           ),
         ],
       ),
@@ -537,8 +522,8 @@ class _PartsResgisterState extends State<PartsResgister> {
                     });
                   }),
               SizedBox(height: 20),
-              InputRegister(keyboardType: TextInputType.text, controller: _controllerModel, hint: 'Modelo',width: width*0.7,fonts: 20),
-              InputRegister(keyboardType: TextInputType.text, controller: _controllerRef, hint: 'Referências',width: width*0.7,fonts: 20),
+              InputRegister(keyboardType: TextInputType.text, controller: _controllerModel, hint: 'Modelo',width: width*0.7,fonts: 20,obscure: false,),
+              InputRegister(keyboardType: TextInputType.text, controller: _controllerRef, hint: 'Referências',width: width*0.7,fonts: 20,obscure: false,),
               _cont==1?Column(
                 children: [
                   Row(

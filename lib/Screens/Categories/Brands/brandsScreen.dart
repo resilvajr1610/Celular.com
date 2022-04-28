@@ -1,14 +1,4 @@
-import 'dart:async';
-import 'package:celular/Model/BrandsModel.dart';
-import 'package:celular/widgets/buttonsAdd.dart';
-import 'package:celular/widgets/buttonsRegister.dart';
-import 'package:celular/widgets/dividerList.dart';
-import 'package:celular/widgets/inputSearch.dart';
-import 'package:celular/widgets/itemsList.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
 import '../../../Model/export.dart';
-import '../../../widgets/showDialogRegister.dart';
 
 class BrandsScreen extends StatefulWidget {
   const BrandsScreen({Key key}) : super(key: key);
@@ -193,7 +183,7 @@ class _BrandsScreenState extends State<BrandsScreen> {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 10),
               width: 55,
-              child: Image.asset("assets/celularcom_ImageView_32-41x41.png"),
+              child: Image.asset("assets/logoBig.png"),
             ),
           ],
         ),

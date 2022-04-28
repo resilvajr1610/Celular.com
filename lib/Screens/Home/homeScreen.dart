@@ -1,6 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import '../../Model/export.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -14,30 +11,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   FirebaseAuth auth = FirebaseAuth.instance;
 
-  _logar()async{
-
-    //auth.signOut();
-
-    auth.signInWithEmailAndPassword(
-        email: "adm@gmail.com",
-        password: "admcelular123"
-    ).then((firebaseUser) {
-
-      print("usuario logado");
-
-    }).catchError((error){
-      auth.signInWithEmailAndPassword(
-        email: "admcelular@gmail.com",
-        password: "admcelular123",
-      ).then((value) => print("usuario logado segundo usuario"));
-    }
-    );
-  }
-
   @override
   void initState() {
     super.initState();
-    _logar();
+    if(auth.currentUser==null){
+      Future.delayed(Duration.zero,(){
+        print("não entrou");
+        Navigator.pushReplacementNamed(context, "/login");
+      });
+    };
   }
 
   @override
@@ -52,7 +34,7 @@ class _HomeScreenState extends State<HomeScreen> {
           actions: [
             Container(
               width: width,
-              child: Image.asset("assets/Group_ImageView_26-241x41.png"),
+              child: Image.asset("assets/logoSmall.png"),
             ),
           ],
         ),

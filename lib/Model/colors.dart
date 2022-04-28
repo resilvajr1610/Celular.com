@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import '../Model/export.dart';
 
 class PaletteColor {
   static const Color black = Color.fromRGBO(0, 0, 0, 1);

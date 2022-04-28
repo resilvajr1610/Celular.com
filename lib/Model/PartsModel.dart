@@ -1,4 +1,5 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import '../Model/export.dart';
+
 class PartsModel{
 
   String _id;

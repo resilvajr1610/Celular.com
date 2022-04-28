@@ -1,13 +1,3 @@
-import 'dart:async';
-import 'package:celular/widgets/buttonsAdd.dart';
-import 'package:celular/widgets/buttonsRegister.dart';
-import 'package:celular/widgets/dividerList.dart';
-import 'package:celular/widgets/inputSearch.dart';
-import 'package:celular/widgets/itemsList.dart';
-import 'package:celular/widgets/showDialogRegister.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import '../../Model/ColorsModel.dart';
 import '../../Model/export.dart';
 
 class ColorsScreen extends StatefulWidget {
@@ -193,7 +183,7 @@ class _ColorsScreenState extends State<ColorsScreen> {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 10),
               width: 55,
-              child: Image.asset("assets/celularcom_ImageView_32-41x41.png"),
+              child: Image.asset("assets/logoBig.png"),
             ),
           ],
         ),

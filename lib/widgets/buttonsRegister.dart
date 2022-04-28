@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import '../Model/export.dart';
 
 class ButtonsRegister extends StatelessWidget {

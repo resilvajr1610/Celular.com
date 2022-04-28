@@ -1,15 +1,4 @@
-import 'dart:async';
-import 'package:celular/widgets/buttonsRegister.dart';
-import 'package:celular/widgets/groupStock.dart';
-import 'package:celular/widgets/inputSearch.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-
-import '../../Model/PartsModel.dart';
-import '../../Model/UpdatesModel.dart';
 import '../../Model/export.dart';
-import '../../widgets/dividerList.dart';
-import '../../widgets/itemsList.dart';
 
 class Output extends StatefulWidget {
   const Output({Key key}) : super(key: key);
@@ -149,7 +138,7 @@ class _OutputState extends State<Output> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 10),
             width: 55,
-            child: Image.asset("assets/celularcom_ImageView_32-41x41.png"),
+            child: Image.asset("assets/logoBig.png"),
           ),
         ],
       ),
@@ -169,17 +158,17 @@ class _OutputState extends State<Output> {
                         DocumentSnapshot item = _resultsList[index];
 
                         _id        = item["id"];
-                        _item   = item["item"];
-                        String stock    = item["estoque"]??"";
-                        String priceSale= item["precoVenda"]??"";
-                        _brand    = item["marca"]??"";
-                        _part    = item["peca"]??"";
+                        _item   = ErrorList(item,"item");
+                        String stock    = ErrorList(item,"estoque")??"";
+                        String priceSale= ErrorList(item,"precoVenda")??"";
+                        _brand    = ErrorList(item,"marca")??"";
+                        _part    = ErrorList(item,"peca")??"";
 
                         return ItemsList(
                           onTapItem: (){
                             setState(() {
                               _stock="";
-                              _stock    = item["estoque"]??"";
+                              _stock    = ErrorList(item,"estoque")??"";
                               _visibility=true;
                             });
                           },

@@ -1,11 +1,4 @@
-import 'package:brasil_fields/formatter/real_input_formatter.dart';
-import 'package:celular/Model/colors.dart';
-import 'package:celular/widgets/dropDownItens.dart';
-import 'package:celular/widgets/textTitle.dart';
-import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'buttonCamera.dart';
-import 'inputRegister.dart';
+import '../Model/export.dart';
 
 class GroupStock extends StatelessWidget {
 
@@ -88,6 +81,7 @@ class GroupStock extends StatelessWidget {
         ):Container(),
         showCod?TextTitle(text: 'Código', fonts: fontsSubtitle):Container(),
         showCod? InputRegister(
+          obscure: false,
           keyboardType: TextInputType.number,
           controller: this.controllerCod,
           hint: '0000000',
@@ -101,6 +95,7 @@ class GroupStock extends StatelessWidget {
               children: [
                 TextTitle(text: showPrice?'Estoque':"Quantidade",fonts: 14),
                 InputRegister(
+                  obscure: false,
                   keyboardType: TextInputType.number,
                   controller: this.controllerStock,
                   hint: '00',
@@ -109,6 +104,7 @@ class GroupStock extends StatelessWidget {
                 ),
                 showPrice?TextTitle(text: 'Preço Compra',fonts: 14):Container(),
                 showPrice?InputRegister(
+                  obscure: false,
                   keyboardType: TextInputType.number,
                   inputFormatter: [
                     FilteringTextInputFormatter.digitsOnly,
@@ -126,6 +122,7 @@ class GroupStock extends StatelessWidget {
               children: [
                 showStockmin? TextTitle(text: 'Estoque mínimo',fonts: 14):Container(),
                 showStockmin? InputRegister(
+                  obscure: false,
                   keyboardType: TextInputType.number,
                   controller: this.controllerStockMin,
                   hint: '00',
@@ -134,6 +131,7 @@ class GroupStock extends StatelessWidget {
                 ):Container(),
                 TextTitle(text: this.titlePrice,fonts: 14),
                 InputRegister(
+                  obscure: false,
                   keyboardType: TextInputType.number,
                   inputFormatter: [
                     FilteringTextInputFormatter.digitsOnly,

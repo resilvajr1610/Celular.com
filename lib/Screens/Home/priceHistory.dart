@@ -1,13 +1,4 @@
-import 'dart:async';
-import 'package:celular/Model/UpdatesModel.dart';
-import 'package:celular/widgets/dividerList.dart';
-import 'package:celular/widgets/textTitle.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../../Model/export.dart';
-import '../../widgets/exampleDataHistory.dart';
-import '../../widgets/inputSearch.dart';
 
 class PriceHistory extends StatefulWidget {
   const PriceHistory({Key key}) : super(key: key);
@@ -101,7 +92,7 @@ class _PriceHistoryState extends State<PriceHistory> {
           Container(
             padding: EdgeInsets.symmetric(horizontal: 10),
             width: 55,
-            child: Image.asset("assets/celularcom_ImageView_32-41x41.png"),
+            child: Image.asset("assets/logoBig.png"),
           ),
         ],
       ),

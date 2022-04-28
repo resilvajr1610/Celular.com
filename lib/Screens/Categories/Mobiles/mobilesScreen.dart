@@ -1,14 +1,4 @@
-import 'dart:async';
-import 'package:celular/Model/MobilesModel.dart';
-import 'package:celular/widgets/buttonsAdd.dart';
-import 'package:celular/widgets/dividerList.dart';
-import 'package:celular/widgets/inputSearch.dart';
-import 'package:celular/widgets/itemsList.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import '../../../Model/export.dart';
-import '../../../widgets/inputRegister.dart';
 
 class MobilesScreen extends StatefulWidget {
   const MobilesScreen({Key key}) : super(key: key);
@@ -124,7 +114,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
           'precoCompra'   :_controllerPricePurchase.text,
           'estoqueMinimo' :_controllerStockMin.text,
           'estoque'       :_controllerStock.text,
-          'item'          :_controllerBrands.text+"_"+_controllerModel.text+"_"+_controllerDescription.text+"_"+_controllerColor.text,
+          'item'          :_controllerBrands.text+"_"+_controllerModel.text+"_"+_controllerDescription.text+"_"+_controllerColor.text+"_"+_controllerRef.text,
     })
         .then((_) {
       Navigator.of(context).pop();
@@ -149,7 +139,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
                       children: [
                         Text("Marca"),
                         Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerBrands, hint: "Marca",fonts: 20)
+                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerBrands, hint: "Marca",fonts: 20,obscure: false,)
                         ),
                       ],
                     ),
@@ -157,7 +147,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
                       children: [
                         Text("Modelo"),
                         Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerModel, hint: "Modelo",fonts: 20)
+                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerModel, hint: "Modelo",fonts: 20,obscure: false,)
                         ),
                       ],
                     ),
@@ -165,7 +155,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
                       children: [
                         Text("Descrição"),
                         Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerDescription, hint: "Descrição",fonts: 20)
+                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerDescription, hint: "Descrição",fonts: 20,obscure: false,)
                         ),
                       ],
                     ),
@@ -173,7 +163,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
                       children: [
                         Text("Referência"),
                         Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerRef, hint: "Referência",fonts: 20)
+                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerRef, hint: "Referência",fonts: 20,obscure: false,)
                         ),
                       ],
                     ),
@@ -181,7 +171,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
                       children: [
                         Text("Cor"),
                         Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerColor, hint: "Cor",fonts: 20)
+                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerColor, hint: "Cor",fonts: 20,obscure: false,)
                         ),
                       ],
                     ),
@@ -189,7 +179,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
                       children: [
                         Text("Preço Venda"),
                         Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerPriceSale, hint: "Preço Venda",fonts: 20)
+                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerPriceSale, hint: "Preço Venda",fonts: 20,obscure: false,)
                         ),
                       ],
                     ),
@@ -197,7 +187,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
                       children: [
                         Text("Preço Compra"),
                         Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerPricePurchase, hint: "Preço Compra",fonts: 20)
+                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerPricePurchase, hint: "Preço Compra",fonts: 20,obscure: false,)
                         ),
                       ],
                     ),
@@ -205,7 +195,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
                       children: [
                         Text("Estoque Mínimo"),
                         Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerStockMin, hint: "Estoque Mínimo",fonts: 20)
+                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerStockMin, hint: "Estoque Mínimo",fonts: 20,obscure: false,)
                         ),
                       ],
                     ),
@@ -213,7 +203,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
                       children: [
                         Text("Estoque"),
                         Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerStock, hint: "Estoque",fonts: 20)
+                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerStock, hint: "Estoque",fonts: 20,obscure: false,)
                         ),
                       ],
                     ),
@@ -271,7 +261,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
             Container(
               padding: EdgeInsets.symmetric(horizontal: 10),
               width: 55,
-              child: Image.asset("assets/celularcom_ImageView_32-41x41.png"),
+              child: Image.asset("assets/logoBig.png"),
             ),
           ],
         ),
@@ -311,31 +301,21 @@ class _MobilesScreenState extends State<MobilesScreen> {
                               DocumentSnapshot item = _resultsList[index];
                           
                               String idParts      = item["id"];
-                              String brands       = item["marca"]??"";
-                              String model        = item["modelo"]??"";
-                              String description  = item["descricao"]??"";
-                              String color        = item["cor"];
-                              String priceSale    = item["precoVenda"]??"";
-                              String pricePurchase= item["precoCompra"]??"";
-                              String stockMin     = item["estoqueMinimo"]??"";
-                              String stock        = item["estoque"]??"";
-                              String ref          = item["referencia"]??"";
-
-                              String part = color!=""?brands+" / "+model+" / "+description+" / "+color:brands+" / "+model+" / "+description;
+                              String part = ErrorList(item,"marca")!=""?ErrorList(item,"marca")+" / "+ErrorList(item,"modelo")+" / "+ErrorList(item,"descricao")+" / "+ErrorList(item,"cor")+" / "+ErrorList(item,"modelo")+" / "+ErrorList(item,"descricao"):"";
 
                               return ItemsList(
                                 showDelete: true,
                                 data: part,
                                 onPressedEdit: (){
-                                  _controllerBrands = TextEditingController(text: brands);
-                                  _controllerModel = TextEditingController(text: model);
-                                  _controllerDescription = TextEditingController(text: description);
-                                  _controllerRef = TextEditingController(text: ref);
-                                  _controllerColor = TextEditingController(text: color);
-                                  _controllerPriceSale = TextEditingController(text: priceSale);
-                                  _controllerPricePurchase = TextEditingController(text: pricePurchase);
-                                  _controllerStockMin = TextEditingController(text: stockMin);
-                                  _controllerStock = TextEditingController(text: stock);
+                                  _controllerBrands = TextEditingController(text: ErrorList(item,"marca"));
+                                  _controllerModel = TextEditingController(text: ErrorList(item,"modelo"));
+                                  _controllerDescription = TextEditingController(text: ErrorList(item,"descricao"));
+                                  _controllerRef = TextEditingController(text: ErrorList(item,"referencia"));
+                                  _controllerColor = TextEditingController(text: ErrorList(item,"cor"));
+                                  _controllerPriceSale = TextEditingController(text: ErrorList(item,"precoVenda"));
+                                  _controllerPricePurchase = TextEditingController(text: ErrorList(item,"precoCompra"));
+                                  _controllerStockMin = TextEditingController(text: ErrorList(item,"estoqueMinimo"));
+                                  _controllerStock = TextEditingController(text: ErrorList(item,"estoque"));
 
                                   _showDialogEdit(idParts);
                                 },

@@ -1,6 +1,4 @@
-import 'package:flutter/material.dart';
 import '../Model/export.dart';
-import 'inputRegister.dart';
 
 class ShowDialogRegister extends StatelessWidget {
 
@@ -24,7 +22,12 @@ class ShowDialogRegister extends StatelessWidget {
       content: Row(
         children: [
           Expanded(
-              child:  InputRegister(keyboardType: TextInputType.text, controller: this.controllerRegister, hint: this.hint,fonts: 20)
+              child:  InputRegister(
+                  obscure: false,
+                  keyboardType: TextInputType.text,
+                  controller: this.controllerRegister,
+                  hint: this.hint,fonts: 20
+              )
           ),
         ],
       ),

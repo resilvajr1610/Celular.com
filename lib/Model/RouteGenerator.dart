@@ -1,25 +1,15 @@
 import 'package:celular/Model/export.dart';
-import 'package:celular/Screens/Categories/Mobiles/PartsRegister.dart';
-import 'package:celular/Screens/Home/categoriesScreen.dart';
-import 'package:celular/Screens/Categories/Brands/brandsScreen.dart';
-import 'package:celular/Screens/Home/homeScreen.dart';
-import 'package:celular/Screens/Home/inventoryControlScreen.dart';
-import 'package:celular/Screens/Home/priceHistory.dart';
-import 'package:celular/Screens/Home/stockAlert.dart';
 import 'package:celular/Screens/Home/stockReport.dart';
-import 'package:celular/Screens/InventoryControl/Input.dart';
-import 'package:celular/Screens/InventoryControl/output.dart';
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-
-import '../Screens/Colors/colorsScreen.dart';
 
 class RouteGenerator{
     static Route<dynamic> generateRoute(RouteSettings settings){
-      final args = settings.arguments;
 
       switch(settings.name){
         case "/" :
+          return MaterialPageRoute(
+              builder: (_) => HomeScreen()
+          );
+        case "/home" :
           return MaterialPageRoute(
               builder: (_) => HomeScreen()
           );
@@ -66,6 +56,10 @@ class RouteGenerator{
         case "/stockAlert" :
           return MaterialPageRoute(
               builder: (_) => StockAlert()
+          );
+        case "/login" :
+          return MaterialPageRoute(
+              builder: (_) => Login()
           );
 
         default :
