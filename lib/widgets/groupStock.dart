@@ -10,6 +10,7 @@ class GroupStock extends StatelessWidget {
   final Widget streamBuilderUp;
   final Widget streamBuilderLow;
   final VoidCallback onTapCamera;
+  final VoidCallback onTapRegisterColor;
   final dynamic onChangedUp;
   final dynamic onChangedLow;
   final bool showStockmin;
@@ -20,6 +21,7 @@ class GroupStock extends StatelessWidget {
   final bool showCod;
   final bool showDisplay;
   final bool sendPhoto;
+  final bool sendData;
   final String titlePrice;
   final String title;
   final String subtitle;
@@ -36,6 +38,7 @@ class GroupStock extends StatelessWidget {
     this.fontsSubtitle,
     @required this.width,
     this.controllerCod,
+    this.onTapRegisterColor,
     @required this.controllerPricePuschace,
     @required this.controllerPriceSale,
     @required this.controllerStock,
@@ -45,6 +48,7 @@ class GroupStock extends StatelessWidget {
     @required this.showCod,
     this.onTapCamera,
     this.sendPhoto,
+    this.sendData,
     this.streamBuilderUp,
     this.streamBuilderLow,
     this.onChangedUp,
@@ -149,9 +153,12 @@ class GroupStock extends StatelessWidget {
                 Icon(Icons.done,color: PaletteColor.green),
                 Text('Foto enviada!',style: TextStyle(color: PaletteColor.green,fontSize: 10),)
               ],
-            ):ButtonCamera(
-                onTap: this.onTapCamera,
-                width: width*0.2
+            ):Visibility(
+              visible: this.sendData,
+              child: ButtonCamera(
+                  onTap: this.onTapCamera,
+                  width: width*0.2
+              ),
             ):Container()
           ],
         ),

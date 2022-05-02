@@ -196,8 +196,8 @@ class _ColorsScreenState extends State<ColorsScreen> {
                 children: [
                   InputSearch(controller: _controllerSearch),
                   ButtonsAdd(onPressed: (){
-                    _controllerRegister.clear();
                     _showDialogRegister(_controllerRegister.text);
+                    _controllerRegister.clear();
                   })
                 ],
               ),

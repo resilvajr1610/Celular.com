@@ -16,6 +16,7 @@ class _PartsResgisterState extends State<PartsResgister> {
   final _controllerDisplay = StreamController<QuerySnapshot>.broadcast();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   PartsModel _partsModel;
+  ColorsModel _colorsModel;
   TextEditingController _controllerModel = TextEditingController();
   TextEditingController _controllerRef = TextEditingController();
   TextEditingController _controllerStock = TextEditingController();
@@ -23,17 +24,20 @@ class _PartsResgisterState extends State<PartsResgister> {
   TextEditingController _controllerPricePuschace = TextEditingController();
   TextEditingController _controllerPriceSale = TextEditingController();
   TextEditingController _controllerCodBattery = TextEditingController();
+  TextEditingController _controllerRegister = TextEditingController();
   static double fonts=20.0;
   UpdatesModel _updatesModel;
   bool _updatePhoto = false;
   bool _switchPCB = false;
   bool _showCamera = true;
   bool _sendPhoto=false;
+  bool _sendData=false;
   File photo;
   String _urlPhoto;
   String _selectedBrands;
   String _selectedUp;
   String _selectedLow;
+
   int _cont=1;
 
   Future<Stream<QuerySnapshot>> _addListenerBrands()async{
@@ -319,119 +323,99 @@ class _PartsResgisterState extends State<PartsResgister> {
 
   _urlImageFirestore(String url, String namePhoto){
 
-    _partsModel = PartsModel.createId();
-
     Map<String,dynamic> dateUpdate = {
       "foto" : url,
-      "item":_selectedBrands+"_"+_controllerModel.text+"_"+namePhoto,
-      "id" : _partsModel.id,
     };
 
     db.collection("pecas")
         .doc(_partsModel.id)
-        .set(dateUpdate);
+        .update(dateUpdate).then((value) => _sendData=false);
   }
 
   _registerDatabase(String part,String description,String color){
 
+    _partsModel = PartsModel.createId();
+
+
+    Map<String,dynamic> dateUpdate = part!="PCB"?{
+      "selecionado1" : _selectedUp,
+      "selecionado2" : _selectedLow,
+      "estoque" : _controllerStock.text,
+      "estoqueMinimo" : _controllerStockMin.text,
+      "precoCompra" : _controllerPricePuschace.text,
+      "precoVenda" : _controllerPriceSale.text,
+      "referencia" : _controllerRef.text,
+      "peca" : part,
+      "marca": _selectedBrands,
+      "item":_selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text,
+      "modelo":_controllerModel.text,
+      "descricao":description,
+      "cor":color,
+      "id":_partsModel.id
+    }:{
+      "marca": _selectedBrands,
+      "peca" : part,
+      "descricao":description,
+      "modelo":_controllerModel.text,
+      "item":_selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text,
+      "selecionado1" : "",
+      "selecionado2" : "",
+      "estoque" : "",
+      "estoqueMinimo" : "",
+      "precoCompra" : "",
+      "precoVenda" : "",
+      "referencia" : part,
+      "cor":"",
+      "foto":"",
+      "id":_partsModel.id
+    };
+
     if(part=="PCB"){
-      _partsModel = PartsModel.createId();
-    }
+      db.collection("pecas")
+          .doc(_partsModel.id)
+          .set(dateUpdate);
 
-    if(_controllerPricePuschace.text!="" && _controllerPricePuschace.text != null
-        && _controllerPriceSale.text!="" && _controllerPriceSale.text !=null
-        && _controllerStock.text!="" && _controllerStock.text !=null
-        && _controllerStockMin.text!="" && _controllerStockMin.text !=null
-        && _selectedUp!="" &&_selectedUp !=null
-        && _selectedLow!="" &&_selectedLow !=null
-        && _controllerRef.text!="" &&_controllerRef.text !=null
-        && _selectedBrands!="" && _selectedBrands!=null
-        && _controllerModel.text!="" &&_controllerModel.text !=null
-        && _sendPhoto
-    ){
-      Map<String,dynamic> dateUpdate = part!="PCB"?{
-        "selecionado1" : _selectedUp,
-        "selecionado2" : _selectedLow,
-        "estoque" : _controllerStock.text,
-        "estoqueMinimo" : _controllerStockMin.text,
-        "precoCompra" : _controllerPricePuschace.text,
-        "precoVenda" : _controllerPriceSale.text,
-        "referencia" : _controllerRef.text,
-        "peca" : part,
-        "marca": _selectedBrands,
-        "item":_selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text,
-        "modelo":_controllerModel.text,
-        "descricao":description,
-        "cor":color,
-      }:{
-        "marca": _selectedBrands,
-        "peca" : part,
-        "descricao":description,
-        "modelo":_controllerModel.text,
-        "item":_selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text,
-        "id":_partsModel.id,
-        "selecionado1" : "",
-        "selecionado2" : "",
-        "estoque" : "",
-        "estoqueMinimo" : "",
-        "precoCompra" : "",
-        "precoVenda" : "",
-        "referencia" : part,
-        "cor":"",
-        "foto":""
-      };
+    }else{
 
-      if(part=="PCB"){
-        db.collection("pecas")
-            .doc(_partsModel.id)
-            .set(dateUpdate);
+      _updatesModel = UpdatesModel.createId();
+      _updatesModel.type = 'entrada';
+      _updatesModel.quantity = _controllerStock.text;
+      _updatesModel.part = part;
+      _updatesModel.brand = _selectedBrands;
+      _updatesModel.date = DateTime.now().toString();
+      _updatesModel.price = _controllerPriceSale.text;
+      _updatesModel.item = _selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text;
 
-      }else{
+      db.collection("pecas")
+          .doc(_partsModel.id)
+          .set(dateUpdate).then((_){
+        db.collection('celulares')
+            .doc(_controllerModel.text)
+            .set({
+          "celular":_controllerModel.text,
+          "marca":_selectedBrands
 
-        _updatesModel = UpdatesModel.createId();
+        }).then((value){
 
-        _updatesModel.type = 'entrada';
-        _updatesModel.quantity = _controllerStock.text;
-        _updatesModel.part = part;
-        _updatesModel.brand = _selectedBrands;
-        _updatesModel.date = DateTime.now().toString();
-        _updatesModel.price = _controllerPriceSale.text;
-        _updatesModel.item = _selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text;
+          db.collection("historicoPrecos")
+              .doc(_updatesModel.id)
+              .set(_updatesModel.toMap());
 
-        db.collection("pecas")
-            .doc(_partsModel.id)
-            .update(dateUpdate).then((_){
-          db.collection('celulares')
-              .doc(_controllerModel.text)
-              .set({
-            "celular":_controllerModel.text,
-            "marca":_selectedBrands
+        }).then((value){
 
-          }).then((value){
-
-            db.collection("historicoPrecos")
-                .doc(_updatesModel.id)
-                .set(_updatesModel.toMap());
-
-          }).then((value){
-
-            setState(() {
-              _controllerStock.clear();
-              _controllerStockMin.clear();
-              _controllerPricePuschace.clear();
-              _controllerPriceSale.clear();
-              description="";
-              color="";
-              part="";
-              _sendPhoto=false;
-            });
-
+          setState(() {
+            _controllerStock.clear();
+            _controllerStockMin.clear();
+            _controllerPricePuschace.clear();
+            _controllerPriceSale.clear();
+            description="";
+            color="";
+            part="";
+            _sendPhoto=false;
+            _sendData=true;
           });
         });
-      }
-    }else{
-      String text = 'Preencha todos os dados e foto para continuar';
-      showSnackBar(context,text);
+      });
     }
   }
 
@@ -457,6 +441,50 @@ class _PartsResgisterState extends State<PartsResgister> {
   _forward(){
     setState(() {
       _cont++;
+    });
+  }
+
+  _showDialogRegister() {
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          return ShowDialogRegister(
+            title: 'Cadastrar Cor',
+            hint: 'Nova Cor',
+            controllerRegister: _controllerRegister,
+            list: [
+              ButtonsRegister(
+                  onTap: () => Navigator.pop(context),
+                  text: 'Cancelar',
+                  color: PaletteColor.greyButton),
+              ButtonsRegister(
+                  onTap: () => _registerColors(),
+                  text: 'Incluir',
+                  color: PaletteColor.blueButton),
+            ],
+          );
+        });
+  }
+
+  _registerColors(){
+    _colorsModel = ColorsModel.createId();
+
+    _colorsModel.color = _controllerRegister.text;
+
+    db
+        .collection("cores")
+        .doc(_colorsModel.color)
+        .set(_colorsModel.toMap())
+        .then((value) {
+      db
+          .collection('corPesquisa')
+          .doc(_colorsModel.id)
+          .set(_colorsModel.toMap())
+          .then((value) {
+        Navigator.pop(context);
+        _controllerRegister.clear();
+      });
     });
   }
 
@@ -543,50 +571,60 @@ class _PartsResgisterState extends State<PartsResgister> {
                       TextTitle(text: 'Sim', fonts: 14),
                     ],
                   ),
-                  GroupStock(
-                      title: 'Display',
-                      subtitle: 'Cor',
-                      fontsTitle: 16,
-                      fontsSubtitle: 14,
-                      width: width*0.5,
-                      showCod: false,
-                      showDropDownUp: true,
-                      showDropDownLow: true,
-                      //display
-                      streamBuilderUp: streamUp(_controllerDisplay),
-                      //color
-                      streamBuilderLow: streamLow(_controllerColors),
-                      onChangedUp: (value){
-                        setState(() {
-                          _selectedUp = value.toString();
-                        });
-                      },
-                      onChangedLow: (value){
-                        setState(() {
-                          _selectedLow = value.toString();
-                        });
-                      },
-                      selectedUp: _selectedUp,
-                      selectedLow: _selectedLow,
-                      controllerPricePuschace: _controllerPricePuschace,
-                      controllerPriceSale: _controllerPriceSale,
-                      controllerStock: _controllerStock,
-                      controllerStockMin: _controllerStockMin,
-                      onTapCamera: ()=> _savePhoto('Display-$_selectedLow'),
-                      sendPhoto: _sendPhoto,
-                      showStockmin: true,
-                      showPrice: true,
-                      titlePrice: 'Preço Venda',
-                      showCamera: true
+                  Row(
+                    children: [
+                      GroupStock(
+                          title: 'Display',
+                          subtitle: 'Cor',
+                          sendData: _sendData,
+                          fontsTitle: 16,
+                          fontsSubtitle: 14,
+                          width: width*0.5,
+                          showCod: false,
+                          showDropDownUp: true,
+                          showDropDownLow: true,
+                          //display
+                          streamBuilderUp: streamUp(_controllerDisplay),
+                          //color
+                          streamBuilderLow: streamLow(_controllerColors),
+                          onChangedUp: (value){
+                            setState(() {
+                              _selectedUp = value.toString();
+                            });
+                          },
+                          onChangedLow: (value){
+                            setState(() {
+                              _selectedLow = value.toString();
+                            });
+                          },
+                          selectedUp: _selectedUp,
+                          selectedLow: _selectedLow,
+                          controllerPricePuschace: _controllerPricePuschace,
+                          controllerPriceSale: _controllerPriceSale,
+                          controllerStock: _controllerStock,
+                          controllerStockMin: _controllerStockMin,
+                          onTapCamera: ()=> _savePhoto('Display-$_selectedLow'),
+                          sendPhoto: _sendPhoto,
+                          showStockmin: true,
+                          showPrice: true,
+                          titlePrice: 'Preço Venda',
+                          showCamera: true
+                      ),
+                      ButtonsRegister(
+                        text: "Nova cor",
+                        color: PaletteColor.blueButton,
+                        onTap: ()=>_showDialogRegister(),
+                      ),
+                    ],
                   ),
                   ControlRegisterParts(
                       onPressedBack: null,
                       onPressedForward: _forward,
                       onTapRegister: (){
-                        _registerDatabase('Display-$_selectedLow','Display',_selectedLow);
                         if(_switchPCB){
                           _registerDatabase('PCB','PCB',"");
                         }
+                        _registerDatabase('Display-$_selectedLow','Display',_selectedLow);
                       }
                   ),
                 ],
@@ -597,6 +635,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       title: 'Película 3D',
                       fontsTitle: 16,
                       width: width*0.5,
+                      sendData: _sendData,
                       showCod: false,
                       sendPhoto: _sendPhoto,
                       showDropDownUp: false,
@@ -625,6 +664,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       fontsTitle: 16,
                       width: width*0.5,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showCod: false,
                       showDropDownUp: false,
                       showDropDownLow: false,
@@ -653,6 +693,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       width: width*0.5,
                       showCod: false,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: false,
                       controllerPricePuschace: _controllerPricePuschace,
@@ -680,6 +721,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       width: width*0.5,
                       showCod: false,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: false,
                       controllerPricePuschace: _controllerPricePuschace,
@@ -707,6 +749,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       width: width*0.5,
                       showCod: false,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: false,
                       controllerPricePuschace: _controllerPricePuschace,
@@ -736,6 +779,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       streamBuilderLow: streamLow(_controllerColors),
                       showCod: false,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: true,
                       onChangedLow: (value){
@@ -771,6 +815,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       streamBuilderLow: streamLow(_controllerColors),
                       showCod: false,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: true,
                       onChangedLow: (value){
@@ -803,6 +848,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       fontsTitle: 16,
                       width: width*0.5,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: false,
                       controllerPricePuschace: _controllerPricePuschace,
@@ -831,6 +877,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       width: width*0.5,
                       showCod: false,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: false,
                       controllerPricePuschace: _controllerPricePuschace,
@@ -858,6 +905,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       width: width*0.5,
                       showCod: true,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: false,
                       controllerCod: _controllerCodBattery,
@@ -889,6 +937,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       width: width*0.5,
                       showCod: false,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: false,
                       controllerPricePuschace: _controllerPricePuschace,
@@ -916,6 +965,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       width: width*0.5,
                       showCod: false,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: false,
                       controllerPricePuschace: _controllerPricePuschace,
@@ -943,6 +993,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       width: width*0.5,
                       showCod: false,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: false,
                       controllerPricePuschace: _controllerPricePuschace,
@@ -971,6 +1022,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       width: width*0.5,
                       showCod: false,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: true,
                       onChangedLow: (value){
@@ -1005,6 +1057,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       width: width*0.5,
                       showCod: false,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: false,
                       controllerPricePuschace: _controllerPricePuschace,
@@ -1032,6 +1085,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       width: width*0.5,
                       showCod: false,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: false,
                       controllerPricePuschace: _controllerPricePuschace,
@@ -1059,6 +1113,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       width: width*0.5,
                       showCod: false,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: false,
                       controllerPricePuschace: _controllerPricePuschace,
@@ -1086,6 +1141,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       width: width*0.5,
                       showCod: false,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: false,
                       controllerPricePuschace: _controllerPricePuschace,
@@ -1113,6 +1169,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       width: width*0.5,
                       showCod: false,
                       sendPhoto: _sendPhoto,
+                      sendData: _sendData,
                       showDropDownUp: false,
                       showDropDownLow: false,
                       controllerPricePuschace: _controllerPricePuschace,

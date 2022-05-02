@@ -10,6 +10,7 @@ class MobilesScreen extends StatefulWidget {
 class _MobilesScreenState extends State<MobilesScreen> {
 
   FirebaseFirestore db = FirebaseFirestore.instance;
+  FirebaseStorage storage = FirebaseStorage.instance;
   final _controllerMobiles = StreamController<QuerySnapshot>.broadcast();
   TextEditingController _controllerSerch = TextEditingController();
   TextEditingController _controllerBrands = TextEditingController();
@@ -21,8 +22,11 @@ class _MobilesScreenState extends State<MobilesScreen> {
   TextEditingController _controllerPricePurchase = TextEditingController();
   TextEditingController _controllerStockMin = TextEditingController();
   TextEditingController _controllerStock = TextEditingController();
+  String _urlPhoto;
+  File photo;
   List _resultsList = [];
   List _allResults = [];
+  bool _updatePhoto = false;
 
   _data() async {
     var data = await db.collection("pecas").get();
@@ -99,8 +103,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
         });
   }
 
-  _edit(
-      String idParts){
+  _edit(String idParts){
 
     db.collection('pecas')
         .doc(idParts)
@@ -122,6 +125,57 @@ class _MobilesScreenState extends State<MobilesScreen> {
     });
   }
 
+  Future _savePhoto(String namePhoto, String idParts)async{
+    try{
+      final image = await ImagePicker().pickImage(source: ImageSource.camera,imageQuality: 50);
+      if(image ==null)return;
+
+      final imageTemporary = File(image.path);
+      this.photo = imageTemporary;
+      setState(() {
+        _updatePhoto=true;
+      });
+      _uploadImage(namePhoto,idParts);
+    } on PlatformException catch (e){
+      print('Error : $e');
+    }
+  }
+
+  Future _uploadImage(String namePhoto,String idParts)async{
+    Reference pastaRaiz = storage.ref();
+    Reference arquivo = pastaRaiz
+        .child("pecas")
+        .child(_controllerBrands.text+"_"+namePhoto + ".jpg");
+
+    UploadTask task = arquivo.putFile(photo);
+
+    Future.delayed(const Duration(seconds: 6),()async{
+      String urlImage = await task.snapshot.ref.getDownloadURL();
+      if(urlImage!=null){
+        _urlImageFirestore(urlImage,namePhoto,idParts);
+        setState(() {
+          _urlPhoto = urlImage;
+        });
+      }
+    });
+  }
+
+  _urlImageFirestore(String url, String namePhoto,String idParts){
+
+    Map<String,dynamic> dateUpdate = {
+      "foto" : url,
+    };
+
+    db.collection("pecas")
+        .doc(idParts)
+        .update(dateUpdate).then((value){
+          setState(() {
+            _updatePhoto=false;
+            Navigator.pushReplacementNamed(context, "/mobiles");
+          });
+    });
+  }
+
   _showDialogEdit( String idParts) {
     showDialog(
         context: context,
@@ -130,7 +184,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
             title: Text("Alterar dados das peças"),
             content: SingleChildScrollView(
               child: Container(
-                height: 500,
+                height: 800,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
@@ -207,6 +261,34 @@ class _MobilesScreenState extends State<MobilesScreen> {
                         ),
                       ],
                     ),
+                    _urlPhoto!=""?GestureDetector(
+                      onTap: (){
+                        Navigator.of(context).pop();
+                        _savePhoto(_controllerDescription.text,idParts);
+                      },
+                      child: Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Image.network(_urlPhoto,
+                            errorBuilder: (BuildContext context, Object exception, StackTrace stackTrace) {
+                              return Container(height: 150,width: 150,child: Icon(Icons.do_not_disturb));
+                            },
+                          ),
+                        ),
+                      ),
+                    ):Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: ButtonsRegister(
+                          text: 'Inserir Foto',
+                          color: PaletteColor.blueButton,
+                          onTap: (){
+                            Navigator.of(context).pop();
+                            _savePhoto(_controllerDescription.text,idParts);
+                          },
+                        ),
+                      ),
+                    )
                   ],
                 ),
               ),
@@ -265,7 +347,18 @@ class _MobilesScreenState extends State<MobilesScreen> {
             ),
           ],
         ),
-        body: SingleChildScrollView(
+        body:
+        _updatePhoto?Center(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              Text('Enviando Foto ...')
+            ],
+          ),
+        ):SingleChildScrollView(
           child: Column(
             children: [
               Row(
@@ -316,6 +409,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
                                   _controllerPricePurchase = TextEditingController(text: ErrorList(item,"precoCompra"));
                                   _controllerStockMin = TextEditingController(text: ErrorList(item,"estoqueMinimo"));
                                   _controllerStock = TextEditingController(text: ErrorList(item,"estoque"));
+                                  _urlPhoto = ErrorList(item, "foto");
 
                                   _showDialogEdit(idParts);
                                 },
@@ -324,7 +418,6 @@ class _MobilesScreenState extends State<MobilesScreen> {
                               });
                             }
                         }
-                        
                       },
                 ),
               ),
