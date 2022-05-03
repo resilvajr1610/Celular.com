@@ -571,65 +571,71 @@ class _PartsResgisterState extends State<PartsResgister> {
                       TextTitle(text: 'Sim', fonts: 14),
                     ],
                   ),
-                  Row(
-                    children: [
-                      GroupStock(
-                          title: 'Display',
-                          subtitle: 'Cor',
-                          sendData: _sendData,
-                          fontsTitle: 16,
-                          fontsSubtitle: 14,
-                          width: width*0.5,
-                          showCod: false,
-                          showDropDownUp: true,
-                          showDropDownLow: true,
-                          //display
-                          streamBuilderUp: streamUp(_controllerDisplay),
-                          //color
-                          streamBuilderLow: streamLow(_controllerColors),
-                          onChangedUp: (value){
-                            setState(() {
-                              _selectedUp = value.toString();
-                            });
-                          },
-                          onChangedLow: (value){
-                            setState(() {
-                              _selectedLow = value.toString();
-                            });
-                          },
-                          selectedUp: _selectedUp,
-                          selectedLow: _selectedLow,
-                          controllerPricePuschace: _controllerPricePuschace,
-                          controllerPriceSale: _controllerPriceSale,
-                          controllerStock: _controllerStock,
-                          controllerStockMin: _controllerStockMin,
-                          onTapCamera: ()=> _savePhoto('Display-$_selectedLow'),
-                          sendPhoto: _sendPhoto,
-                          showStockmin: true,
-                          showPrice: true,
-                          titlePrice: 'Preço Venda',
-                          showCamera: true
-                      ),
-                      ButtonsRegister(
-                        text: "Nova cor",
-                        color: PaletteColor.blueButton,
-                        onTap: ()=>_showDialogRegister(),
-                      ),
-                    ],
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_switchPCB?_registerDatabase('PCB','PCB',""):null
+                  ),
+                ],
+              ):Container(),
+              _cont==2?Column(
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    alignment: Alignment.centerRight,
+                    child: ButtonsRegister(
+                      text: "Nova cor",
+                      color: PaletteColor.blueButton,
+                      onTap: ()=>_showDialogRegister(),
+                    ),
+                  ),
+                  GroupStock(
+                      title: 'Display',
+                      subtitle: 'Cor',
+                      sendData: _sendData,
+                      fontsTitle: 16,
+                      fontsSubtitle: 14,
+                      width: width*0.5,
+                      showCod: false,
+                      showDropDownUp: true,
+                      showDropDownLow: true,
+                      //display
+                      streamBuilderUp: streamUp(_controllerDisplay),
+                      //color
+                      streamBuilderLow: streamLow(_controllerColors),
+                      onChangedUp: (value){
+                        setState(() {
+                          _selectedUp = value.toString();
+                        });
+                      },
+                      onChangedLow: (value){
+                        setState(() {
+                          _selectedLow = value.toString();
+                        });
+                      },
+                      selectedUp: _selectedUp,
+                      selectedLow: _selectedLow,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=> _savePhoto('Display-$_selectedLow'),
+                      sendPhoto: _sendPhoto,
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
                   ),
                   ControlRegisterParts(
                       onPressedBack: null,
                       onPressedForward: _forward,
                       onTapRegister: (){
-                        if(_switchPCB){
-                          _registerDatabase('PCB','PCB',"");
-                        }
                         _registerDatabase('Display-$_selectedLow','Display',_selectedLow);
                       }
                   ),
                 ],
               ):Container(),
-              _cont==2?Column(
+              _cont==3?Column(
                 children: [
                   GroupStock(
                       title: 'Película 3D',
@@ -657,7 +663,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==3?Column(
+              _cont==4?Column(
                 children: [
                   GroupStock(
                       title: 'Película 3D Privativa',
@@ -685,7 +691,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==4?Column(
+              _cont==5?Column(
                 children: [
                   GroupStock(
                       title: 'Película de Vidro',
@@ -713,7 +719,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==5?Column(
+              _cont==6?Column(
                 children: [
                   GroupStock(
                       title: 'Case Original',
@@ -741,7 +747,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==6?Column(
+              _cont==7?Column(
                 children: [
                   GroupStock(
                       title: 'Case TPU',
@@ -769,46 +775,19 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==7?Column(
-                children: [
-                  GroupStock(
-                      title: 'Cores de Tampa',
-                      subtitle: 'Cor',
-                      fontsTitle: 16,
-                      width: width*0.5,
-                      streamBuilderLow: streamLow(_controllerColors),
-                      showCod: false,
-                      sendPhoto: _sendPhoto,
-                      sendData: _sendData,
-                      showDropDownUp: false,
-                      showDropDownLow: true,
-                      onChangedLow: (value){
-                        setState(() {
-                          _selectedLow = value.toString();
-                        });
-                      },
-                      selectedLow: _selectedLow,
-                      controllerPricePuschace: _controllerPricePuschace,
-                      controllerPriceSale: _controllerPriceSale,
-                      controllerStock: _controllerStock,
-                      controllerStockMin: _controllerStockMin,
-                      onTapCamera: ()=>_savePhoto('Cores de Tampa-$_selectedLow'),
-                      showStockmin: true,
-                      showPrice: true,
-                      titlePrice: 'Preço Venda',
-                      showCamera: true
-                  ),
-                  ControlRegisterParts(
-                      onPressedBack: _back,
-                      onPressedForward: _forward,
-                      onTapRegister: ()=>_registerDatabase('Cores de Tampa-$_selectedLow',"Cores de Tampa",_selectedLow)
-                  ),
-                ],
-              ):Container(),
               _cont==8?Column(
                 children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    alignment: Alignment.centerRight,
+                    child: ButtonsRegister(
+                      text: "Nova cor",
+                      color: PaletteColor.blueButton,
+                      onTap: ()=>_showDialogRegister(),
+                    ),
+                  ),
                   GroupStock(
-                      title: 'Cores de Chassi',
+                      title: 'Tampa',
                       subtitle: 'Cor',
                       fontsTitle: 16,
                       width: width*0.5,
@@ -828,7 +807,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                       controllerPriceSale: _controllerPriceSale,
                       controllerStock: _controllerStock,
                       controllerStockMin: _controllerStockMin,
-                      onTapCamera: ()=>_savePhoto('Cores de Chassi-$_selectedLow'),
+                      onTapCamera: ()=>_savePhoto('Tampa_$_selectedLow'),
                       showStockmin: true,
                       showPrice: true,
                       titlePrice: 'Preço Venda',
@@ -837,11 +816,56 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ControlRegisterParts(
                       onPressedBack: _back,
                       onPressedForward: _forward,
-                      onTapRegister: ()=>_registerDatabase('Cores de Chassi-$_selectedLow',"Cores de Chassi",_selectedLow)
+                      onTapRegister: ()=>_registerDatabase('Tampa_$_selectedLow',"Tampa",_selectedLow)
                   ),
                 ],
               ):Container(),
               _cont==9?Column(
+                children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    alignment: Alignment.centerRight,
+                    child: ButtonsRegister(
+                      text: "Nova cor",
+                      color: PaletteColor.blueButton,
+                      onTap: ()=>_showDialogRegister(),
+                    ),
+                  ),
+                  GroupStock(
+                      title: 'Chassi',
+                      subtitle: 'Cor',
+                      fontsTitle: 16,
+                      width: width*0.5,
+                      streamBuilderLow: streamLow(_controllerColors),
+                      showCod: false,
+                      sendPhoto: _sendPhoto,
+                      sendData: _sendData,
+                      showDropDownUp: false,
+                      showDropDownLow: true,
+                      onChangedLow: (value){
+                        setState(() {
+                          _selectedLow = value.toString();
+                        });
+                      },
+                      selectedLow: _selectedLow,
+                      controllerPricePuschace: _controllerPricePuschace,
+                      controllerPriceSale: _controllerPriceSale,
+                      controllerStock: _controllerStock,
+                      controllerStockMin: _controllerStockMin,
+                      onTapCamera: ()=>_savePhoto('Chassi_$_selectedLow'),
+                      showStockmin: true,
+                      showPrice: true,
+                      titlePrice: 'Preço Venda',
+                      showCamera: true
+                  ),
+                  ControlRegisterParts(
+                      onPressedBack: _back,
+                      onPressedForward: _forward,
+                      onTapRegister: ()=>_registerDatabase('Chassi_$_selectedLow',"Chassi",_selectedLow)
+                  ),
+                ],
+              ):Container(),
+              _cont==10?Column(
                 children: [
                   GroupStock(
                       title: 'Conector de Carga',
@@ -869,7 +893,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==10?Column(
+              _cont==11?Column(
                 children: [
                   GroupStock(
                       title: 'Dock de Carga',
@@ -897,7 +921,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==11?Column(
+              _cont==12?Column(
                 children: [
                   GroupStock(
                       title: 'Bateria',
@@ -929,7 +953,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==12?Column(
+              _cont==13?Column(
                 children: [
                   GroupStock(
                       title: 'Flex Power',
@@ -957,7 +981,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==13?Column(
+              _cont==14?Column(
                 children: [
                   GroupStock(
                       title: 'Digital',
@@ -985,7 +1009,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==14?Column(
+              _cont==15?Column(
                 children: [
                   GroupStock(
                       title: 'Lente da Câmera',
@@ -1013,8 +1037,17 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==15?Column(
+              _cont==16?Column(
                 children: [
+                  Container(
+                    padding: EdgeInsets.symmetric(horizontal: 20),
+                    alignment: Alignment.centerRight,
+                    child: ButtonsRegister(
+                      text: "Nova cor",
+                      color: PaletteColor.blueButton,
+                      onTap: ()=>_showDialogRegister(),
+                    ),
+                  ),
                   GroupStock(
                       title: 'Gaveta do chip',
                       subtitle: 'Cor',
@@ -1049,7 +1082,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==16?Column(
+              _cont==17?Column(
                 children: [
                   GroupStock(
                       title: 'Câmera Frontal',
@@ -1077,7 +1110,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==17?Column(
+              _cont==18?Column(
                 children: [
                   GroupStock(
                       title: 'Câmera Traseira',
@@ -1105,7 +1138,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==18?Column(
+              _cont==19?Column(
                 children: [
                   GroupStock(
                       title: 'Falante Auricular',
@@ -1133,7 +1166,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==19?Column(
+              _cont==20?Column(
                 children: [
                   GroupStock(
                       title: 'Campainha',
@@ -1161,7 +1194,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==20?Column(
+              _cont==21?Column(
                 children: [
                   GroupStock(
                       title: 'Flex Sub Placa',
