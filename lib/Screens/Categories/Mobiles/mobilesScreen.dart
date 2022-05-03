@@ -10,23 +10,22 @@ class MobilesScreen extends StatefulWidget {
 class _MobilesScreenState extends State<MobilesScreen> {
 
   FirebaseFirestore db = FirebaseFirestore.instance;
-  FirebaseStorage storage = FirebaseStorage.instance;
   final _controllerMobiles = StreamController<QuerySnapshot>.broadcast();
   TextEditingController _controllerSerch = TextEditingController(text: "");
-  TextEditingController _controllerBrands = TextEditingController(text: "");
+  String _selectedBrands;
+  String _selectedColor="";
+  final _controllerBrandsBroadcast = StreamController<QuerySnapshot>.broadcast();
+  final _controllerColorsBroadcast = StreamController<QuerySnapshot>.broadcast();
   TextEditingController _controllerModel = TextEditingController(text: "");
-  TextEditingController _controllerDescription = TextEditingController(text: "");
   TextEditingController _controllerRef = TextEditingController(text: "");
-  TextEditingController _controllerColor = TextEditingController(text: "");
   TextEditingController _controllerPriceSale = TextEditingController(text: "");
   TextEditingController _controllerPricePurchase = TextEditingController(text: "");
   TextEditingController _controllerStockMin = TextEditingController(text: "");
   TextEditingController _controllerStock = TextEditingController(text: "");
   String _urlPhoto;
-  File photo;
+  String _description = "";
   List _resultsList = [];
   List _allResults = [];
-  bool _updatePhoto = false;
 
   _data() async {
     var data = await db.collection("pecas").get();
@@ -103,217 +102,108 @@ class _MobilesScreenState extends State<MobilesScreen> {
         });
   }
 
-  _edit(String idParts){
+  _showDialogEdit(
+      String idParts,
+      String brands,
+      String description,
+      String color,
+      final controllerModel,
+      final controllerPricePurchase,
+      final controllerPriceSale,
+      final controllerRef,
+      final controllerStock,
+      final controllerStockMin,
+      String urlPhoto,
+      ) {
 
-    db.collection('pecas')
-        .doc(idParts)
-        .update({
-          'marca'         :_controllerBrands.text,
-          'modelo'        :_controllerModel.text,
-          'descricao'     :_controllerDescription.text,
-          'referencia'    :_controllerRef.text,
-          'cor'           :_controllerColor.text,
-          'precoVenda'    :_controllerPriceSale.text,
-          'precoCompra'   :_controllerPricePurchase.text,
-          'estoqueMinimo' :_controllerStockMin.text,
-          'estoque'       :_controllerStock.text,
-          'item'          :_controllerBrands.text+"_"+_controllerModel.text+"_"+_controllerDescription.text+"_"+_controllerColor.text+"_"+_controllerRef.text,
-    })
-        .then((_) {
-      Navigator.of(context).pop();
-      Navigator.pushReplacementNamed(context, "/mobiles");
-    });
-  }
-
-  Future _savePhoto(String namePhoto, String idParts)async{
-    try{
-      final image = await ImagePicker().pickImage(source: ImageSource.camera,imageQuality: 50);
-      if(image ==null)return;
-
-      final imageTemporary = File(image.path);
-      this.photo = imageTemporary;
-      setState(() {
-        _updatePhoto=true;
-      });
-      _uploadImage(namePhoto,idParts);
-    } on PlatformException catch (e){
-      print('Error : $e');
-    }
-  }
-
-  Future _uploadImage(String namePhoto,String idParts)async{
-    Reference pastaRaiz = storage.ref();
-    Reference arquivo = pastaRaiz
-        .child("pecas")
-        .child(_controllerBrands.text+"_"+namePhoto + ".jpg");
-
-    UploadTask task = arquivo.putFile(photo);
-
-    Future.delayed(const Duration(seconds: 6),()async{
-      String urlImage = await task.snapshot.ref.getDownloadURL();
-      if(urlImage!=null){
-        _urlImageFirestore(urlImage,namePhoto,idParts);
-        setState(() {
-          _urlPhoto = urlImage;
-        });
-      }
-    });
-  }
-
-  _urlImageFirestore(String url, String namePhoto,String idParts){
-
-    Map<String,dynamic> dateUpdate = {
-      "foto" : url,
-    };
-
-    db.collection("pecas")
-        .doc(idParts)
-        .update(dateUpdate).then((value){
-          setState(() {
-            _updatePhoto=false;
-            Navigator.pushReplacementNamed(context, "/mobiles");
-          });
-    });
-  }
-
-  _showDialogEdit( String idParts) {
     showDialog(
         context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text("Alterar dados das peças"),
-            content: SingleChildScrollView(
-              child: Container(
-                height: 800,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      children: [
-                        Text("Marca"),
-                        Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerBrands, hint: "Marca",fonts: 20,obscure: false,)
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Text("Modelo"),
-                        Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerModel, hint: "Modelo",fonts: 20,obscure: false,)
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Text("Descrição"),
-                        Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerDescription, hint: "Descrição",fonts: 20,obscure: false,)
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Text("Referência"),
-                        Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerRef, hint: "Referência",fonts: 20,obscure: false,)
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Text("Cor"),
-                        Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerColor, hint: "Cor",fonts: 20,obscure: false,)
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Text("Preço Venda"),
-                        Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerPriceSale, hint: "Preço Venda",fonts: 20,obscure: false,)
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Text("Preço Compra"),
-                        Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerPricePurchase, hint: "Preço Compra",fonts: 20,obscure: false,)
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Text("Estoque Mínimo"),
-                        Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerStockMin, hint: "Estoque Mínimo",fonts: 20,obscure: false,)
-                        ),
-                      ],
-                    ),
-                    Row(
-                      children: [
-                        Text("Estoque"),
-                        Expanded(
-                            child:  InputRegister(keyboardType: TextInputType.text, controller: _controllerStock, hint: "Estoque",fonts: 20,obscure: false,)
-                        ),
-                      ],
-                    ),
-                    _urlPhoto!=""?GestureDetector(
-                      onTap: (){
-                        Navigator.of(context).pop();
-                        _savePhoto(_controllerDescription.text,idParts);
-                      },
-                      child: Center(
-                        child: Padding(
-                          padding: const EdgeInsets.all(8.0),
-                          child: Image.network(_urlPhoto,
-                            errorBuilder: (BuildContext context, Object exception, StackTrace stackTrace) {
-                              return Container(height: 150,width: 150,child: Icon(Icons.do_not_disturb));
-                            },
-                          ),
-                        ),
-                      ),
-                    ):Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8.0),
-                        child: ButtonsRegister(
-                          text: 'Inserir Foto',
-                          color: PaletteColor.blueButton,
-                          onTap: (){
-                            Navigator.of(context).pop();
-                            _savePhoto(_controllerDescription.text,idParts);
-                          },
-                        ),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-            ),
-            actions: <Widget>[
-              FlatButton(
-                child: Text(
-                  "Cancelar",
-                  style: TextStyle(color: Colors.grey),
-                ),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-              FlatButton(
-                color: PaletteColor.blueButton,
-                child: Text(
-                  "Alterar",
-                  style: TextStyle(color: Colors.white),
-                ),
-                onPressed: () => _edit(idParts),
-              )
-            ],
+        builder: (_) {
+          return DialogEdit(
+            idParts: idParts,
+            brands: brands,
+            description: description,
+            color: color,
+            controllerModel: controllerModel,
+            controllerPricePurchase: controllerPricePurchase,
+            controllerPriceSale: controllerPriceSale,
+            controllerRef: controllerRef,
+            controllerStock: controllerStock,
+            controllerStockMin: controllerStockMin,
+            urlPhoto : urlPhoto
           );
         });
+  }
+
+  Future<Stream<QuerySnapshot>> _addListenerBrands()async{
+
+    Stream<QuerySnapshot> stream = db
+        .collection("marcas")
+        .snapshots();
+
+    stream.listen((data) {
+      _controllerBrandsBroadcast.add(data);
+    });
+  }
+
+  Widget streamBrands() {
+
+    _addListenerBrands();
+
+    return StreamBuilder<QuerySnapshot>(
+      stream:_controllerBrandsBroadcast.stream,
+      builder: (context,snapshot){
+
+        if(snapshot.hasError)
+          return Text("Erro ao carregar dados!");
+
+        switch (snapshot.connectionState){
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return Container();
+          case ConnectionState.active:
+          case ConnectionState.done:
+
+            if(!snapshot.hasData){
+              return CircularProgressIndicator();
+            }else {
+              List<DropdownMenuItem> espItems = [];
+              for (int i = 0; i < snapshot.data.docs.length; i++) {
+                DocumentSnapshot snap = snapshot.data.docs[i];
+                espItems.add(
+                    DropdownMenuItem(
+                      child: Text(
+                        snap.id,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: PaletteColor.darkGrey),
+                      ),
+                      value: "${snap.id}",
+                    )
+                );
+              }
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  DropdownButton(
+                    items: espItems,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedBrands = value;
+                      });
+                    },
+                    value: _selectedBrands,
+                    isExpanded: false,
+                    hint: new Text(
+                      "",
+                      style: TextStyle(color: PaletteColor.darkGrey,fontSize: 10),
+                    ),
+                  ),
+                ],
+              );
+            }
+        }
+      },
+    );
   }
 
   @override
@@ -347,18 +237,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
             ),
           ],
         ),
-        body:
-        _updatePhoto?Center(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(),
-              Text('Enviando Foto ...')
-            ],
-          ),
-        ):SingleChildScrollView(
+        body: SingleChildScrollView(
           child: Column(
             children: [
               Row(
@@ -400,18 +279,30 @@ class _MobilesScreenState extends State<MobilesScreen> {
                                 showDelete: true,
                                 data: part,
                                 onPressedEdit: (){
-                                  _controllerBrands = TextEditingController(text: ErrorList(item,"marca"));
+                                  _selectedBrands = ErrorList(item,"marca");
+                                  _selectedColor = ErrorList(item,"cor");
                                   _controllerModel = TextEditingController(text: ErrorList(item,"modelo"));
-                                  _controllerDescription = TextEditingController(text: ErrorList(item,"descricao"));
+                                  _description = ErrorList(item,"descricao");
                                   _controllerRef = TextEditingController(text: ErrorList(item,"referencia"));
-                                  _controllerColor = TextEditingController(text: ErrorList(item,"cor"));
                                   _controllerPriceSale = TextEditingController(text: ErrorList(item,"precoVenda"));
                                   _controllerPricePurchase = TextEditingController(text: ErrorList(item,"precoCompra"));
                                   _controllerStockMin = TextEditingController(text: ErrorList(item,"estoqueMinimo"));
                                   _controllerStock = TextEditingController(text: ErrorList(item,"estoque"));
                                   _urlPhoto = ErrorList(item, "foto");
 
-                                  _showDialogEdit(idParts);
+                                  _showDialogEdit(
+                                      idParts,
+                                      _selectedBrands,
+                                      _description,
+                                      _selectedColor,
+                                      _controllerModel,
+                                      _controllerPricePurchase,
+                                      _controllerPriceSale,
+                                      _controllerRef,
+                                      _controllerStock,
+                                      _controllerStockMin,
+                                      _urlPhoto
+                                  );
                                 },
                                 onPressedDelete: () =>_showDialogDelete(idParts,part),
                               );
@@ -426,3 +317,456 @@ class _MobilesScreenState extends State<MobilesScreen> {
         ));
   }
 }
+
+class DialogEdit extends StatefulWidget {
+  String brands;
+  String color;
+  String idParts;
+  String description;
+  Widget streamBrands;
+  TextEditingController controllerModel;
+  TextEditingController controllerRef;
+  TextEditingController controllerPriceSale;
+  TextEditingController controllerPricePurchase;
+  TextEditingController controllerStockMin;
+  TextEditingController controllerStock;
+  String urlPhoto;
+
+  DialogEdit({
+    this.brands,
+    this.description,
+    this.idParts,
+    this.controllerModel,
+    this.color,
+    this.controllerStockMin,
+    this.controllerPricePurchase,
+    this.controllerPriceSale,
+    this.controllerRef,
+    this.controllerStock,
+    this.streamBrands,
+    this.urlPhoto
+  });
+
+  @override
+  State<DialogEdit> createState() => _DialogEditState();
+}
+
+class _DialogEditState extends State<DialogEdit> {
+
+  final _controllerBrandsBroadcast = StreamController<QuerySnapshot>.broadcast();
+  final _controllerColorsBroadcast = StreamController<QuerySnapshot>.broadcast();
+  FirebaseFirestore db = FirebaseFirestore.instance;
+  FirebaseStorage storage = FirebaseStorage.instance;
+  File photo;
+  bool _updatePhoto=true;
+
+  Future _savePhoto(String namePhoto, String idParts)async{
+    try{
+      final image = await ImagePicker().pickImage(source: ImageSource.camera,imageQuality: 50);
+      if(image ==null)return;
+
+      final imageTemporary = File(image.path);
+      this.photo = imageTemporary;
+
+      _updatePhoto=false;
+
+      _uploadImage(namePhoto,idParts);
+    } on PlatformException catch (e){
+      print('Error : $e');
+    }
+  }
+
+  Future _uploadImage(String namePhoto,String idParts)async{
+    Reference pastaRaiz = storage.ref();
+    Reference arquivo = pastaRaiz
+        .child("pecas")
+        .child(widget.brands+"_"+namePhoto + ".jpg");
+
+    UploadTask task = arquivo.putFile(photo);
+
+    Future.delayed(const Duration(seconds: 6),()async{
+      String urlImage = await task.snapshot.ref.getDownloadURL();
+      if(urlImage!=null){
+        _urlImageFirestore(urlImage,namePhoto,idParts);
+        setState(() {
+          widget.urlPhoto = urlImage;
+        });
+      }
+    });
+  }
+
+  _urlImageFirestore(String url, String namePhoto,String idParts){
+
+    Map<String,dynamic> dateUpdate = {
+      "foto" : url,
+    };
+
+    db.collection("pecas")
+        .doc(idParts)
+        .update(dateUpdate).then((value){
+      _updatePhoto=true;
+      Navigator.pushReplacementNamed(context, "/mobiles");
+    });
+  }
+
+  Future<Stream<QuerySnapshot>> _addListenerBrands()async{
+
+    FirebaseFirestore db = FirebaseFirestore.instance;
+    Stream<QuerySnapshot> stream = db
+        .collection("marcas")
+        .snapshots();
+
+    stream.listen((data) {
+      _controllerBrandsBroadcast.add(data);
+    });
+  }
+
+  Future<Stream<QuerySnapshot>> _addListenerColors()async{
+
+    Stream<QuerySnapshot> stream = db
+        .collection("cores")
+        .snapshots();
+
+    stream.listen((data) {
+      _controllerColorsBroadcast.add(data);
+    });
+  }
+
+  Widget streamBrands() {
+
+    _addListenerBrands();
+
+    return StreamBuilder<QuerySnapshot>(
+      stream:_controllerBrandsBroadcast.stream,
+      builder: (context,snapshot){
+
+        if(snapshot.hasError)
+          return Text("Erro ao carregar dados!");
+
+        switch (snapshot.connectionState){
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return Container();
+          case ConnectionState.active:
+          case ConnectionState.done:
+
+            if(!snapshot.hasData){
+              return CircularProgressIndicator();
+            }else {
+              List<DropdownMenuItem> espItems = [];
+              for (int i = 0; i < snapshot.data.docs.length; i++) {
+                DocumentSnapshot snap = snapshot.data.docs[i];
+                espItems.add(
+                    DropdownMenuItem(
+                      child: Text(
+                        snap.id,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: PaletteColor.darkGrey),
+                      ),
+                      value: "${snap.id}",
+                    )
+                );
+              }
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  DropdownButton(
+                    items: espItems,
+                    onChanged: (value) {
+                      setState(() {
+                        widget.brands = value;
+                      });
+                    },
+                    value: widget.brands,
+                    isExpanded: false,
+                    hint: new Text(
+                      "",
+                      style: TextStyle(color: PaletteColor.darkGrey,fontSize: 10),
+                    ),
+                  ),
+                ],
+              );
+            }
+        }
+      },
+    );
+  }
+
+  Widget streamColors() {
+
+    _addListenerColors();
+
+    return StreamBuilder<QuerySnapshot>(
+        stream:_controllerColorsBroadcast.stream,
+        builder: (context,snapshot) {
+
+          if(snapshot.hasError)
+            return Text("Erro ao carregar dados!");
+
+          switch (snapshot.connectionState) {
+            case ConnectionState.none:
+            case ConnectionState.waiting:
+              return Container();
+              break;
+            case ConnectionState.active:
+            case ConnectionState.done:
+              if (!snapshot.hasData) {
+                return CircularProgressIndicator();
+              } else {
+                List<DropdownMenuItem> espItems = [];
+                for (int i = 0; i < snapshot.data.docs.length; i++) {
+                  DocumentSnapshot snap = snapshot.data.docs[i];
+                  espItems.add(
+                      DropdownMenuItem(
+                        child: Text(
+                          snap.id!=0? snap.id : "",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: PaletteColor.darkGrey),
+                        ),
+                        value: "${snap.id ?? ""}",
+                      )
+                  );
+                }
+                return Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    DropdownButton(
+                      items: espItems,
+                      onChanged: (value) {
+                        setState(() {
+                          widget.color = value;
+                        });
+                      },
+                      value: widget.color!=""?widget.color:widget.color="cor",
+                      isExpanded: false,
+                      hint: new Text(
+                        "Selecione",
+                        style: TextStyle(color: PaletteColor.darkGrey),
+                      ),
+                    ),
+                  ],
+                );
+              }
+          }
+        }
+    );
+  }
+
+  _edit(String idParts){
+
+    db.collection('pecas')
+        .doc(idParts)
+        .update({
+      'marca'         :widget.brands,
+      'modelo'        :widget.controllerModel.text,
+      'descricao'     :widget.description,
+      'referencia'    :widget.controllerRef.text,
+      'cor'           :widget.color,
+      'precoVenda'    :widget.controllerPriceSale.text,
+      'precoCompra'   :widget.controllerPricePurchase.text,
+      'estoqueMinimo' :widget.controllerStockMin.text,
+      'estoque'       :widget.controllerStock.text,
+      'item'          :widget.brands+"_"+widget.controllerModel.text+"_"+widget.description+"_"+widget.color+"_"+widget.controllerRef.text,
+    })
+        .then((_) {
+      Navigator.of(context).pop();
+      Navigator.pushReplacementNamed(context, "/mobiles");
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+
+    double height = MediaQuery.of(context).size.height;
+    double width = MediaQuery.of(context).size.width;
+
+    return AlertDialog(
+      title: Text("Alterar dados das peças"),
+      content: SingleChildScrollView(
+        child: Container(
+          height: 800,
+          child: _updatePhoto==false? Row(
+            children: [
+              CircularProgressIndicator(),
+              Text('Enviando Foto ...')
+            ],
+          ):Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                height: height * 0.15,
+                child: Row(
+                  children: [
+                    Text("Marca"),
+                    DropdownItens(
+                        width: width * 0.35,
+                        streamBuilder: streamBrands(),
+                        onChanged: (valor) {
+                          setState(() {
+                            widget.brands = valor;
+                          });
+                        }),
+                  ],
+                ),
+              ),
+              Row(
+                children: [
+                  Text("Modelo"),
+                  Expanded(
+                      child: InputRegister(
+                        keyboardType: TextInputType.text,
+                        controller: widget.controllerModel,
+                        hint: "Modelo",
+                        fonts: 20,
+                        obscure: false,)
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Text("Descrição"),
+                  Expanded(
+                      child: TextTitle(text: widget.description, fonts: 15)
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Text("Referência"),
+                  Expanded(
+                      child: InputRegister(
+                        keyboardType: TextInputType.text,
+                        controller: widget.controllerRef,
+                        hint: "Referência",
+                        fonts: 20,
+                        obscure: false,)
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Text("Cor"),
+                  DropdownItens(
+                      width: width * 0.42,
+                      streamBuilder: streamColors(),
+                      onChanged: (valor) {
+                        setState(() {
+                          widget.color = valor;
+                        });
+                      }),
+                ],
+              ),
+              Row(
+                children: [
+                  Text("Preço Venda"),
+                  Expanded(
+                      child: InputRegister(
+                        keyboardType: TextInputType.text,
+                        controller: widget.controllerPriceSale,
+                        hint: "Preço Venda",
+                        fonts: 20,
+                        obscure: false,)
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Text("Preço Compra"),
+                  Expanded(
+                      child: InputRegister(
+                        keyboardType: TextInputType.text,
+                        controller: widget.controllerPricePurchase,
+                        hint: "Preço Compra",
+                        fonts: 20,
+                        obscure: false,)
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Text("Estoque Mínimo"),
+                  Expanded(
+                      child: InputRegister(
+                        keyboardType: TextInputType.text,
+                        controller: widget.controllerStockMin,
+                        hint: "Estoque Mínimo",
+                        fonts: 20,
+                        obscure: false,)
+                  ),
+                ],
+              ),
+              Row(
+                children: [
+                  Text("Estoque"),
+                  Expanded(
+                      child: InputRegister(
+                        keyboardType: TextInputType.text,
+                        controller: widget.controllerStock,
+                        hint: "Estoque",
+                        fonts: 20,
+                        obscure: false)
+                  ),
+                ],
+              ),
+              widget.urlPhoto != ""? Visibility(
+                visible: _updatePhoto,
+                child: GestureDetector(
+                  onTap: () {
+                    Navigator.of(context).pop();
+                    _savePhoto(widget.description, widget.idParts);
+                  },
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Image.network(widget.urlPhoto,
+                        errorBuilder: (BuildContext context,
+                            Object exception, StackTrace stackTrace) {
+                          return Container(height: 150,
+                              width: 150,
+                              child: Icon(Icons.do_not_disturb));
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ) : Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ButtonsRegister(
+                    text: 'Inserir Foto',
+                    color: PaletteColor.blueButton,
+                    onTap: () {
+                      Navigator.of(context).pop();
+                      _savePhoto(widget.description, widget.idParts);
+                    },
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+      actions: <Widget>[
+        FlatButton(
+          child: Text(
+            "Cancelar",
+            style: TextStyle(color: Colors.grey),
+          ),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        FlatButton(
+          color: PaletteColor.blueButton,
+          child: Text(
+            "Alterar",
+            style: TextStyle(color: Colors.white),
+          ),
+          onPressed: () => _edit(widget.idParts),
+        )
+      ],
+    );
+  }
+}
+
