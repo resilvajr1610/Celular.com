@@ -1,5 +1,12 @@
+import 'package:celular/Screens/Categories/Referencies/add_ref_screen.dart';
+import 'package:celular/Screens/Categories/Referencies/refScreen.dart';
+import 'package:celular/Screens/Categories/Stories/add_store_screen.dart';
+import 'package:celular/Screens/Categories/Supply/add_supply_screen.dart';
+import 'package:celular/Screens/Categories/Supply/supplyScreen.dart';
 import 'package:celular/Utils/export.dart';
 import 'package:celular/Screens/Home/stockReport.dart';
+
+import '../Screens/Categories/Stories/StoreScreen.dart';
 
 class RouteGenerator{
     static Route<dynamic> generateRoute(RouteSettings settings){
@@ -61,7 +68,30 @@ class RouteGenerator{
           return MaterialPageRoute(
               builder: (_) => Login()
           );
-
+        case "/ref" :
+          return MaterialPageRoute(
+              builder: (_) => RefScreen()
+          );
+        case "/add_ref" :
+          return MaterialPageRoute(
+              builder: (_) => AddRefScreen()
+          );
+        case "/supply" :
+          return MaterialPageRoute(
+              builder: (_) => SupplyScreen()
+          );
+        case "/add_supply" :
+          return MaterialPageRoute(
+              builder: (_) => AddSupplyScreen()
+          );
+        case "/store" :
+          return MaterialPageRoute(
+              builder: (_) => StoreScreen()
+          );
+        case "/add_store" :
+          return MaterialPageRoute(
+              builder: (_) => AddStoreScreen()
+          );
         default :
           _erroRota();
       }

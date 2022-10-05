@@ -43,6 +43,15 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
                     text: "Peças",
                     onPressed: () => Navigator.pushNamed(context, "/mobiles")),
                 ButtonsEnterScreens(
+                    text: "Referências",
+                    onPressed: () => Navigator.pushNamed(context, "/ref")),
+                ButtonsEnterScreens(
+                    text: "Fornecedores",
+                    onPressed: () => Navigator.pushNamed(context, "/supply")),
+                ButtonsEnterScreens(
+                    text: "Lojas",
+                    onPressed: () => Navigator.pushNamed(context, "/store")),
+                ButtonsEnterScreens(
                     text: "Cores",
                     onPressed: () => Navigator.pushNamed(context, "/colors")),
               ],

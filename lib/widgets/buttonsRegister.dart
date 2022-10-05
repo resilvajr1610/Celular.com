@@ -5,11 +5,13 @@ class ButtonsRegister extends StatelessWidget {
   final VoidCallback onTap;
   final String text;
   final Color color;
+  final double width;
 
   ButtonsRegister({
     @required this.onTap,
     @required this.text,
     @required this.color,
+    this.width = 100
 });
 
   @override
@@ -17,7 +19,7 @@ class ButtonsRegister extends StatelessWidget {
     return InkWell(
         onTap: this.onTap,
         child: Container(
-            width: 100,
+            width: width,
             alignment: Alignment.center,
             padding: EdgeInsets.all(10),
             decoration: BoxDecoration(
