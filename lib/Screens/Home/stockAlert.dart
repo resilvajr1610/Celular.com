@@ -1,4 +1,4 @@
-import '../../Model/export.dart';
+import '../../Utils/export.dart';
 import 'package:pdf/widgets.dart' as pdfLib;
 
 class StockAlert extends StatefulWidget {
@@ -53,118 +53,131 @@ class _StockAlertState extends State<StockAlert> {
 
   _createPdf(BuildContext context)async{
 
-    double width = 80;
-
     final pdfLib.Document pdf = pdfLib.Document(deflate: zlib.encode);
 
-    pdf.addPage(pdfLib.MultiPage(
-      build: (context)=>[
+    double width = 80;
+    int lines = 32;
+    int pages = (_resultsList.length/lines).round()+1;
+    int pag=0;
 
-        pdfLib.Container(
-          padding: pdfLib.EdgeInsets.symmetric(vertical: 4),
-          child: pdfLib.Text('Relatório Alerta de Estoque',style: pdfLib.TextStyle(fontSize: 30))
-        ),
-        pdfLib.Container(
-            padding: pdfLib.EdgeInsets.symmetric(vertical: 4),
-            child: pdfLib.Text(DateTime.now().toString())
-        ),
-        pdfLib.Row(
-          mainAxisAlignment: pdfLib.MainAxisAlignment.spaceBetween,
-          children: [
-            pdfLib.Container(
-                width: width,
-                child: pdfLib.Text('Marca')
-            ),
-            pdfLib.Container(
-                width: width,
-                child: pdfLib.Text('Modelo')
-            ),
-            pdfLib.Container(
-                width: width,
-                child: pdfLib.Text('Peça')
-            ),
-            pdfLib.Container(
-                width: 50,
-                child: pdfLib.Text('Cor')
-            ),
-            pdfLib.Container(
-                width: 50,
-                child: pdfLib.Text('Mínimo')
-            ),
-            pdfLib.Container(
-                width: 70,
-                child: pdfLib.Text('Estoque')
-            ),
-            pdfLib.Container(
-                width: 120,
-                alignment: pdfLib.Alignment.centerRight,
-                child: pdfLib.Text('Quantidade\nFaltante')
-            ),
-          ],
-        ),
+    for(var i=0;pages>i;i++){
 
-        pdfLib.ListView.builder(
-            itemCount: _resultsList.length,
-        itemBuilder: (context, index) {
-          DocumentSnapshot item = _resultsList[index];
+      pdf.addPage(pdfLib.MultiPage(
+          build: (context)=>[
 
-          String stock = ErrorList(item,"estoque") ?? "";
-          String stockMin = ErrorList(item,"estoqueMinimo") ?? "";
-          String brands = ErrorList(item,"marca") ?? "";
-          String model = ErrorList(item,"modelo") ?? "";
-          String description = ErrorList(item,"descricao") ?? "";
-          String color = ErrorList(item,"cor") ?? "";
+            pdfLib.Container(
+                padding: pdfLib.EdgeInsets.symmetric(vertical: 4),
+                child: pdfLib.Text('Relatório Alerta de Estoque',style: pdfLib.TextStyle(fontSize: 30))
+            ),
+            pdfLib.Container(
+                padding: pdfLib.EdgeInsets.symmetric(vertical: 4),
+                child: pdfLib.Text(DateTime.now().toString())
+            ),
+            pdfLib.Row(
+              mainAxisAlignment: pdfLib.MainAxisAlignment.spaceBetween,
+              children: [
+                pdfLib.Container(
+                    width: width,
+                    child: pdfLib.Text('Marca')
+                ),
+                pdfLib.Container(
+                    width: width,
+                    child: pdfLib.Text('Modelo')
+                ),
+                pdfLib.Container(
+                    width: width,
+                    child: pdfLib.Text('Peça')
+                ),
+                pdfLib.Container(
+                    width: 50,
+                    child: pdfLib.Text('Cor')
+                ),
+                pdfLib.Container(
+                    width: 50,
+                    child: pdfLib.Text('Mínimo')
+                ),
+                pdfLib.Container(
+                    width: 70,
+                    child: pdfLib.Text('Estoque')
+                ),
+                pdfLib.Container(
+                    width: 120,
+                    alignment: pdfLib.Alignment.centerRight,
+                    child: pdfLib.Text('Quantidade\nFaltante')
+                ),
+              ],
+            ),
 
-          if(stock==""){
-            stock ="0";
-          }
-          if(stockMin==""){
-            stockMin ="0";
-          }
+            pdfLib.ListView.builder(
+                itemCount: lines,
+                itemBuilder: (context, index) {
+                  int indexGeral = index+pag;
 
-          int dif = int.parse(stockMin) - int.parse(stock);
+                  DocumentSnapshot item = _resultsList[indexGeral>=_resultsList.length?0:indexGeral];
 
-          return dif<0?pdfLib.Container():pdfLib.Row(
-            mainAxisAlignment: pdfLib.MainAxisAlignment.spaceBetween,
-            children: [
-              pdfLib.Container(
-                  width: width,
-                  child: pdfLib.Text(brands)
-              ),
-              pdfLib.Container(
-                  width: width,
-                  child: pdfLib.Text(model)
-              ),
-              pdfLib.Container(
-                  width: width,
-                  child: pdfLib.Text(description)
-              ),
-              pdfLib.Container(
-                  width: 40,
-                  child: pdfLib.Text(color)
-              ),
-              pdfLib.Container(
-                  alignment: pdfLib.Alignment.centerRight,
-                  width: 50,
-                  child: pdfLib.Text(stockMin)
-              ),
-              pdfLib.Container(
-                  width: 50,
-                  alignment: pdfLib.Alignment.centerRight,
-                  child: pdfLib.Text(stock)
-              ),
-              pdfLib.Container(
-                  padding: pdfLib.EdgeInsets.symmetric(horizontal: 30),
-                  width: 120,
-                  alignment: pdfLib.Alignment.centerRight,
-                  child: pdfLib.Text(dif<0?"0":dif.toString())
-              ),
-            ],
-          );
-        }
-        ),
-      ]
-    ));
+                  // print('index ${indexGeral>=_resultsList.length?0:indexGeral}');
+
+                  String stock = ErrorList(item,"estoque") ?? "";
+                  String stockMin = ErrorList(item,"estoqueMinimo") ?? "";
+                  String brands = ErrorList(item,"marca") ?? "";
+                  String model = ErrorList(item,"modelo") ?? "";
+                  String description = ErrorList(item,"descricao") ?? "";
+                  String color = ErrorList(item,"cor") ?? "";
+
+                  if(stock==""){
+                    stock ="0";
+                  }
+                  if(stockMin==""){
+                    stockMin ="0";
+                  }
+
+                  int dif = int.parse(stockMin) - int.parse(stock);
+
+                  return indexGeral>=_resultsList.length && dif<0
+                    ?pdfLib.Container():pdfLib.Row(
+                    mainAxisAlignment: pdfLib.MainAxisAlignment.spaceBetween,
+                    children: [
+                      pdfLib.Container(
+                          width: width,
+                          child: pdfLib.Text(brands)
+                      ),
+                      pdfLib.Container(
+                          width: width,
+                          child: pdfLib.Text(model)
+                      ),
+                      pdfLib.Container(
+                          width: width,
+                          child: pdfLib.Text(description)
+                      ),
+                      pdfLib.Container(
+                          width: 40,
+                          child: pdfLib.Text(color)
+                      ),
+                      pdfLib.Container(
+                          alignment: pdfLib.Alignment.centerRight,
+                          width: 50,
+                          child: pdfLib.Text(stockMin)
+                      ),
+                      pdfLib.Container(
+                          width: 50,
+                          alignment: pdfLib.Alignment.centerRight,
+                          child: pdfLib.Text(stock)
+                      ),
+                      pdfLib.Container(
+                          padding: pdfLib.EdgeInsets.symmetric(horizontal: 30),
+                          width: 120,
+                          alignment: pdfLib.Alignment.centerRight,
+                          child: pdfLib.Text(dif<0?"0":dif.toString())
+                      ),
+                    ],
+                  );
+                }
+            ),
+          ]
+      ));
+      pag = pag+lines;
+    }
+
 
   final String dir = (await getApplicationDocumentsDirectory()).path;
 
@@ -192,7 +205,7 @@ class _StockAlertState extends State<StockAlert> {
       ),
     );
 
-    _scaffoldKey.currentState.showSnackBar(snackbar);
+    ScaffoldMessenger.of(context).showSnackBar(snackbar);
   }
 
   @override

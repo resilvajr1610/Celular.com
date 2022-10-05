@@ -1,4 +1,4 @@
-import '../../Model/export.dart';
+import '../../Utils/export.dart';
 
 class InventoryControlScreen extends StatefulWidget {
   const InventoryControlScreen({Key key}) : super(key: key);

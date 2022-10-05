@@ -1,4 +1,4 @@
-import '../../Model/export.dart';
+import '../../Utils/export.dart';
 
 class CategoriesScreen extends StatefulWidget {
   const CategoriesScreen({Key key}) : super(key: key);

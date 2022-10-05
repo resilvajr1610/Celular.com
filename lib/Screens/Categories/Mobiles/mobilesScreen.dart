@@ -1,4 +1,4 @@
-import '../../../Model/export.dart';
+import '../../../Utils/export.dart';
 
 class MobilesScreen extends StatefulWidget {
   const MobilesScreen({Key key}) : super(key: key);
@@ -14,6 +14,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
   TextEditingController _controllerSerch = TextEditingController(text: "");
   String _selectedBrands;
   String _selectedColor="";
+  String _selected1="";
   final _controllerBrandsBroadcast = StreamController<QuerySnapshot>.broadcast();
   final _controllerColorsBroadcast = StreamController<QuerySnapshot>.broadcast();
   TextEditingController _controllerModel = TextEditingController(text: "");
@@ -80,7 +81,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
             title: Text("Confirmar"),
             content: Text("Deseja realmente excluir $part?"),
             actions: <Widget>[
-              FlatButton(
+              ElevatedButton(
                 child: Text(
                   "Cancelar",
                   style: TextStyle(color: Colors.grey),
@@ -89,8 +90,10 @@ class _MobilesScreenState extends State<MobilesScreen> {
                   Navigator.of(context).pop();
                 },
               ),
-              FlatButton(
-                color: Colors.red,
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                ),
                 child: Text(
                   "Remover",
                   style: TextStyle(color: Colors.white),
@@ -107,6 +110,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
       String brands,
       String description,
       String color,
+      String selected1,
       final controllerModel,
       final controllerPricePurchase,
       final controllerPriceSale,
@@ -124,6 +128,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
             brands: brands,
             description: description,
             color: color,
+            selected1: selected1,
             controllerModel: controllerModel,
             controllerPricePurchase: controllerPricePurchase,
             controllerPriceSale: controllerPriceSale,
@@ -280,7 +285,8 @@ class _MobilesScreenState extends State<MobilesScreen> {
                                 data: part,
                                 onPressedEdit: (){
                                   _selectedBrands = ErrorList(item,"marca");
-                                  _selectedColor = ErrorList(item,"cor");
+                                  _selectedColor = ErrorList(item,"cor")==''?'Branco':ErrorList(item,"cor");
+                                  _selected1 = ErrorList(item,"selecionado1")==''?'N/A':ErrorList(item,"selecionado1");
                                   _controllerModel = TextEditingController(text: ErrorList(item,"modelo"));
                                   _description = ErrorList(item,"descricao");
                                   _controllerRef = TextEditingController(text: ErrorList(item,"referencia"));
@@ -295,6 +301,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
                                       _selectedBrands,
                                       _description,
                                       _selectedColor,
+                                      _selected1,
                                       _controllerModel,
                                       _controllerPricePurchase,
                                       _controllerPriceSale,
@@ -321,6 +328,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
 class DialogEdit extends StatefulWidget {
   String brands;
   String color;
+  String selected1;
   String idParts;
   String description;
   Widget streamBrands;
@@ -338,6 +346,7 @@ class DialogEdit extends StatefulWidget {
     this.idParts,
     this.controllerModel,
     this.color,
+    this.selected1,
     this.controllerStockMin,
     this.controllerPricePurchase,
     this.controllerPriceSale,
@@ -355,6 +364,7 @@ class _DialogEditState extends State<DialogEdit> {
 
   final _controllerBrandsBroadcast = StreamController<QuerySnapshot>.broadcast();
   final _controllerColorsBroadcast = StreamController<QuerySnapshot>.broadcast();
+  final _controllerDisplayBroadcast = StreamController<QuerySnapshot>.broadcast();
   FirebaseFirestore db = FirebaseFirestore.instance;
   FirebaseStorage storage = FirebaseStorage.instance;
   File photo;
@@ -432,6 +442,17 @@ class _DialogEditState extends State<DialogEdit> {
     });
   }
 
+  Future<Stream<QuerySnapshot>> _addListenerDisplay()async{
+
+    Stream<QuerySnapshot> stream = db
+        .collection("display")
+        .snapshots();
+
+    stream.listen((data) {
+      _controllerDisplayBroadcast.add(data);
+    });
+  }
+
   Widget streamBrands() {
 
     _addListenerBrands();
@@ -478,6 +499,76 @@ class _DialogEditState extends State<DialogEdit> {
                       });
                     },
                     value: widget.brands,
+                    isExpanded: false,
+                    hint: new Text(
+                      "",
+                      style: TextStyle(color: PaletteColor.darkGrey,fontSize: 10),
+                    ),
+                  ),
+                ],
+              );
+            }
+        }
+      },
+    );
+  }
+
+  Widget streamDisplay() {
+
+    _addListenerDisplay();
+
+    return StreamBuilder<QuerySnapshot>(
+      stream:_controllerDisplayBroadcast.stream,
+      builder: (context,snapshot){
+
+        if(snapshot.hasError)
+          return Text("Erro ao carregar dados!");
+
+        switch (snapshot.connectionState){
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return Container();
+          case ConnectionState.active:
+          case ConnectionState.done:
+
+            if(!snapshot.hasData){
+              return CircularProgressIndicator();
+            }else {
+              List<DropdownMenuItem> espItems = [];
+              for (int i = 0; i < snapshot.data.docs.length; i++) {
+                DocumentSnapshot snap = snapshot.data.docs[i];
+                espItems.add(
+                    DropdownMenuItem(
+                      child: Text(
+                        snap.id,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: PaletteColor.darkGrey,fontSize: 15),
+                      ),
+                      value: "${snap.id}",
+                    )
+                );
+              }
+              espItems.add(
+                  DropdownMenuItem(
+                    child: Text(
+                      'N/A',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(color: PaletteColor.darkGrey,fontSize: 15),
+                    ),
+                    value: "N/A",
+                  )
+              );
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  DropdownButton(
+                    items: espItems,
+                    onChanged: (value) {
+                      setState(() {
+                        widget.selected1 = value;
+                      });
+                    },
+                    value: widget.selected1,
                     isExpanded: false,
                     hint: new Text(
                       "",
@@ -558,6 +649,7 @@ class _DialogEditState extends State<DialogEdit> {
         .doc(idParts)
         .update({
       'marca'         :widget.brands,
+      'selecionado1'  :widget.selected1,
       'modelo'        :widget.controllerModel.text,
       'descricao'     :widget.description,
       'referencia'    :widget.controllerRef.text,
@@ -581,6 +673,9 @@ class _DialogEditState extends State<DialogEdit> {
     double width = MediaQuery.of(context).size.width;
 
     return AlertDialog(
+      insetPadding: EdgeInsets.symmetric(horizontal: 0),
+      actionsAlignment: MainAxisAlignment.spaceAround,
+      contentPadding: EdgeInsets.all(3),
       title: Text("Alterar dados das peças"),
       content: SingleChildScrollView(
         child: Container(
@@ -653,6 +748,19 @@ class _DialogEditState extends State<DialogEdit> {
                       onChanged: (valor) {
                         setState(() {
                           widget.color = valor;
+                        });
+                      }),
+                ],
+              ),
+              Row(
+                children: [
+                  Text("Display"),
+                  DropdownItens(
+                      width: width * 0.33,
+                      streamBuilder: streamDisplay(),
+                      onChanged: (valor) {
+                        setState(() {
+                          widget.selected1 = valor;
                         });
                       }),
                 ],
@@ -748,7 +856,10 @@ class _DialogEditState extends State<DialogEdit> {
         ),
       ),
       actions: <Widget>[
-        FlatButton(
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Colors.white
+          ),
           child: Text(
             "Cancelar",
             style: TextStyle(color: Colors.grey),
@@ -757,8 +868,10 @@ class _DialogEditState extends State<DialogEdit> {
             Navigator.of(context).pop();
           },
         ),
-        FlatButton(
-          color: PaletteColor.blueButton,
+        ElevatedButton(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: PaletteColor.blueButton,
+          ),
           child: Text(
             "Alterar",
             style: TextStyle(color: Colors.white),

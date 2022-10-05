@@ -1,4 +1,4 @@
-import '../Model/export.dart';
+import '../Utils/export.dart';
 
 class DividerList extends StatelessWidget {
   const DividerList({Key key}) : super(key: key);

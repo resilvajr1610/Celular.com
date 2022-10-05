@@ -1,4 +1,4 @@
-import '../Model/export.dart';
+import '../Utils/export.dart';
 
 class Splash extends StatefulWidget {
   const Splash({Key key}) : super(key: key);

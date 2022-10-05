@@ -1,4 +1,4 @@
-import '../../../Model/export.dart';
+import '../../../Utils/export.dart';
 
 class PartsResgister extends StatefulWidget {
   const PartsResgister({Key key}) : super(key: key);
@@ -37,7 +37,7 @@ class _PartsResgisterState extends State<PartsResgister> {
   String _selectedBrands;
   String _selectedUp;
   String _selectedLow;
-
+  bool saving = false;
   int _cont=1;
 
   Future<Stream<QuerySnapshot>> _addListenerBrands()async{
@@ -297,7 +297,7 @@ class _PartsResgisterState extends State<PartsResgister> {
         ),
     );
 
-    _scaffoldKey.currentState.showSnackBar(snackbar);
+    ScaffoldMessenger.of(context).showSnackBar(snackbar);
   }
 
   Future _uploadImage(String namePhoto)async{
@@ -333,89 +333,166 @@ class _PartsResgisterState extends State<PartsResgister> {
   }
 
   _registerDatabase(String part,String description,String color){
+    if(_selectedBrands!=null && _controllerModel.text.isNotEmpty && _controllerRef.text.isNotEmpty){
+      setState((){
+        saving = true;
+      });
 
-    _partsModel = PartsModel.createId();
+      _partsModel = PartsModel.createId();
 
+      Map<String,dynamic> dateUpdate = part!="PCB"?{
+        "selecionado1" : _selectedUp,
+        "selecionado2" : _selectedLow,
+        "estoque" : _controllerStock.text,
+        "estoqueMinimo" : _controllerStockMin.text,
+        "precoCompra" : _controllerPricePuschace.text,
+        "precoVenda" : _controllerPriceSale.text,
+        "referencia" : _controllerRef.text,
+        "peca" : part,
+        "marca": _selectedBrands,
+        "item":_selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text,
+        "modelo":_controllerModel.text,
+        "descricao":description,
+        "cor":color,
+        "id":_partsModel.id
+      }:{
+        "marca": _selectedBrands,
+        "peca" : part,
+        "descricao":description,
+        "modelo":_controllerModel.text,
+        "item":_selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text,
+        "selecionado1" : "N/A",
+        "selecionado2" : "N/A",
+        "estoque" : "0",
+        "estoqueMinimo" : "0",
+        "precoCompra" : "0",
+        "precoVenda" : "0",
+        "referencia" : part,
+        "cor":"Branco",
+        "foto":"",
+        "id":_partsModel.id
+      };
 
-    Map<String,dynamic> dateUpdate = part!="PCB"?{
-      "selecionado1" : _selectedUp,
-      "selecionado2" : _selectedLow,
-      "estoque" : _controllerStock.text,
-      "estoqueMinimo" : _controllerStockMin.text,
-      "precoCompra" : _controllerPricePuschace.text,
-      "precoVenda" : _controllerPriceSale.text,
-      "referencia" : _controllerRef.text,
-      "peca" : part,
-      "marca": _selectedBrands,
-      "item":_selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text,
-      "modelo":_controllerModel.text,
-      "descricao":description,
-      "cor":color,
-      "id":_partsModel.id
-    }:{
-      "marca": _selectedBrands,
-      "peca" : part,
-      "descricao":description,
-      "modelo":_controllerModel.text,
-      "item":_selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text,
-      "selecionado1" : "N/A",
-      "selecionado2" : "N/A",
-      "estoque" : "0",
-      "estoqueMinimo" : "0",
-      "precoCompra" : "0",
-      "precoVenda" : "0",
-      "referencia" : part,
-      "cor":"Branco",
-      "foto":"",
-      "id":_partsModel.id
-    };
+      if(part=="PCB"){
+        db.collection("pecas")
+            .doc(_partsModel.id)
+            .set(dateUpdate).then((value) =>setState((){
+            saving=false;
+            showDialog(
+                context: context,
+                barrierDismissible: false,
+                builder: (context) {
+                  return AlertDialog(
+                    title: Center(child: Text('Salvo')),
+                    titleTextStyle: TextStyle(color: PaletteColor.darkGrey,fontSize: 20),
+                    content: Row(
+                      children: [
+                        Expanded(
+                            child:  Text('Informações incluídas no banco de dados')
+                        ),
+                      ],
+                    ),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
+                    actions: [
+                      ElevatedButton(
+                          onPressed: ()=>Navigator.pop(context),
+                          child: Text('OK')
+                      )
+                    ],
+                  );
+                });
+        }));
 
-    if(part=="PCB"){
-      db.collection("pecas")
-          .doc(_partsModel.id)
-          .set(dateUpdate);
+      }else{
 
-    }else{
+        _updatesModel = UpdatesModel.createId();
+        _updatesModel.type = 'entrada';
+        _updatesModel.quantity = _controllerStock.text;
+        _updatesModel.part = part;
+        _updatesModel.brand = _selectedBrands;
+        _updatesModel.date = DateTime.now().toString();
+        _updatesModel.price = _controllerPriceSale.text;
+        _updatesModel.item = _selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text;
 
-      _updatesModel = UpdatesModel.createId();
-      _updatesModel.type = 'entrada';
-      _updatesModel.quantity = _controllerStock.text;
-      _updatesModel.part = part;
-      _updatesModel.brand = _selectedBrands;
-      _updatesModel.date = DateTime.now().toString();
-      _updatesModel.price = _controllerPriceSale.text;
-      _updatesModel.item = _selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text;
+        db.collection("pecas")
+            .doc(_partsModel.id)
+            .set(dateUpdate).then((_){
+          db.collection('celulares')
+              .doc(_controllerModel.text)
+              .set({
+            "celular":_controllerModel.text,
+            "marca":_selectedBrands
 
-      db.collection("pecas")
-          .doc(_partsModel.id)
-          .set(dateUpdate).then((_){
-        db.collection('celulares')
-            .doc(_controllerModel.text)
-            .set({
-          "celular":_controllerModel.text,
-          "marca":_selectedBrands
+          }).then((value){
 
-        }).then((value){
+            db.collection("historicoPrecos")
+                .doc(_updatesModel.id)
+                .set(_updatesModel.toMap());
 
-          db.collection("historicoPrecos")
-              .doc(_updatesModel.id)
-              .set(_updatesModel.toMap());
+          }).then((value){
 
-        }).then((value){
-
-          setState(() {
-            _controllerStock.clear();
-            _controllerStockMin.clear();
-            _controllerPricePuschace.clear();
-            _controllerPriceSale.clear();
-            description="";
-            color="";
-            part="";
-            _sendPhoto=false;
-            _sendData=true;
+            setState(() {
+              _controllerStock.clear();
+              _controllerStockMin.clear();
+              _controllerPricePuschace.clear();
+              _controllerPriceSale.clear();
+              description="";
+              color="";
+              part="";
+              _sendPhoto=false;
+              _sendData=true;
+              saving=false;
+              showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) {
+                    return AlertDialog(
+                      title: Center(child: Text('Salvo')),
+                      titleTextStyle: TextStyle(color: PaletteColor.darkGrey,fontSize: 20),
+                      content: Row(
+                        children: [
+                          Expanded(
+                              child:  Text('Informações incluídas no banco de dados')
+                          ),
+                        ],
+                      ),
+                      contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
+                      actions: [
+                        ElevatedButton(
+                            onPressed: ()=>Navigator.pop(context),
+                            child: Text('OK')
+                        )
+                      ],
+                    );
+                  });
+            });
           });
         });
-      });
+      }
+    }else{
+      showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return AlertDialog(
+              title: Center(child: Text('Erro ao Salvar')),
+              titleTextStyle: TextStyle(color: PaletteColor.darkGrey,fontSize: 20),
+              content: Row(
+                children: [
+                  Expanded(
+                      child:  Text('Preecha todos os campos corretamente')
+                  ),
+                ],
+              ),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
+              actions: [
+                ElevatedButton(
+                    onPressed: ()=>Navigator.pop(context),
+                    child: Text('OK')
+                )
+              ],
+            );
+          });
     }
   }
 
@@ -552,7 +629,17 @@ class _PartsResgisterState extends State<PartsResgister> {
               SizedBox(height: 20),
               InputRegister(keyboardType: TextInputType.text, controller: _controllerModel, hint: 'Modelo',width: width*0.7,fonts: 20,obscure: false,),
               InputRegister(keyboardType: TextInputType.text, controller: _controllerRef, hint: 'Referências',width: width*0.7,fonts: 20,obscure: false,),
-              _cont==1?Column(
+              saving?Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(width: 20),
+                    Text('Salvando informações ...')
+                  ],
+                ),
+              ):Container(),
+              _cont==1 && saving==false ? Column(
                 children: [
                   Row(
                     children: [
@@ -578,7 +665,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==2?Column(
+              _cont==2 && saving==false ?Column(
                 children: [
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 20),
@@ -635,7 +722,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==3?Column(
+              _cont==3 && saving==false ?Column(
                 children: [
                   GroupStock(
                       title: 'Película 3D',
@@ -663,7 +750,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==4?Column(
+              _cont==4 && saving==false ?Column(
                 children: [
                   GroupStock(
                       title: 'Película 3D Privativa',
@@ -691,7 +778,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==5?Column(
+              _cont==5 && saving==false ?Column(
                 children: [
                   GroupStock(
                       title: 'Película de Vidro',
@@ -719,7 +806,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==6?Column(
+              _cont==6 && saving==false ?Column(
                 children: [
                   GroupStock(
                       title: 'Case Original',
@@ -747,7 +834,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==7?Column(
+              _cont==7 && saving==false ?Column(
                 children: [
                   GroupStock(
                       title: 'Case TPU',
@@ -775,7 +862,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==8?Column(
+              _cont==8 && saving==false ?Column(
                 children: [
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 20),
@@ -820,7 +907,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==9?Column(
+              _cont==9 && saving==false ?Column(
                 children: [
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 20),
@@ -865,7 +952,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==10?Column(
+              _cont==10 && saving==false ?Column(
                 children: [
                   GroupStock(
                       title: 'Conector de Carga',
@@ -893,7 +980,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==11?Column(
+              _cont==11 && saving==false ?Column(
                 children: [
                   GroupStock(
                       title: 'Dock de Carga',
@@ -921,7 +1008,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==12?Column(
+              _cont==12 && saving==false ?Column(
                 children: [
                   GroupStock(
                       title: 'Bateria',
@@ -953,7 +1040,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==13?Column(
+              _cont==13 && saving==false ?Column(
                 children: [
                   GroupStock(
                       title: 'Flex Power',
@@ -981,7 +1068,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==14?Column(
+              _cont==14 && saving==false ?Column(
                 children: [
                   GroupStock(
                       title: 'Digital',
@@ -1009,7 +1096,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==15?Column(
+              _cont==15 && saving==false ?Column(
                 children: [
                   GroupStock(
                       title: 'Lente da Câmera',
@@ -1037,7 +1124,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==16?Column(
+              _cont==16 && saving==false ?Column(
                 children: [
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 20),
@@ -1082,7 +1169,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==17?Column(
+              _cont==17 && saving==false ?Column(
                 children: [
                   GroupStock(
                       title: 'Câmera Frontal',
@@ -1110,7 +1197,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==18?Column(
+              _cont==18 && saving==false ?Column(
                 children: [
                   GroupStock(
                       title: 'Câmera Traseira',
@@ -1138,7 +1225,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==19?Column(
+              _cont==19 && saving==false ?Column(
                 children: [
                   GroupStock(
                       title: 'Falante Auricular',
@@ -1166,7 +1253,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==20?Column(
+              _cont==20 && saving==false ?Column(
                 children: [
                   GroupStock(
                       title: 'Campainha',
@@ -1194,7 +1281,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                   ),
                 ],
               ):Container(),
-              _cont==21?Column(
+              _cont==21 && saving==false ?Column(
                 children: [
                   GroupStock(
                       title: 'Flex Sub Placa',

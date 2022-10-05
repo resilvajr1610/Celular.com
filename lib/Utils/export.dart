@@ -29,7 +29,7 @@ export '../Screens/Home/homeScreen.dart';
 export '../Screens/Home/categoriesScreen.dart';
 
 export '../Model/PartsModel.dart';
-export '../Model/RouteGenerator.dart';
+export 'RouteGenerator.dart';
 export '../Model/UpdatesModel.dart';
 export '../Model/colors.dart';
 export '../Model/MobilesModel.dart';
@@ -47,7 +47,6 @@ export 'package:firebase_auth/firebase_auth.dart';
 export 'package:share_extend/share_extend.dart';
 export 'package:flutter_full_pdf_viewer/flutter_full_pdf_viewer.dart';
 export 'package:path_provider/path_provider.dart';
-export 'package:intl/intl.dart';
 export 'package:brasil_fields/formatter/real_input_formatter.dart';
 
 export 'dart:async';

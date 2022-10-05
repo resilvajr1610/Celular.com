@@ -1,4 +1,4 @@
-import 'package:celular/Model/export.dart';
+import 'package:celular/Utils/export.dart';
 import 'package:celular/Screens/Home/stockReport.dart';
 
 class RouteGenerator{

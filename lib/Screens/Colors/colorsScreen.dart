@@ -1,4 +1,4 @@
-import '../../Model/export.dart';
+import '../../Utils/export.dart';
 
 class ColorsScreen extends StatefulWidget {
   const ColorsScreen({Key key}) : super(key: key);
@@ -121,7 +121,7 @@ class _ColorsScreenState extends State<ColorsScreen> {
             title: Text("Confirmar"),
             content: Text("Deseja realmente excluir essa cor?"),
             actions: <Widget>[
-              FlatButton(
+              ElevatedButton(
                 child: Text(
                   "Cancelar",
                   style: TextStyle(color: Colors.grey),
@@ -130,8 +130,10 @@ class _ColorsScreenState extends State<ColorsScreen> {
                   Navigator.of(context).pop();
                 },
               ),
-              FlatButton(
-                color: Colors.red,
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                ),
                 child: Text(
                   "Remover",
                   style: TextStyle(color: Colors.white),

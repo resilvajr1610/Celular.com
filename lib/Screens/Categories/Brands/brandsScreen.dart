@@ -1,4 +1,4 @@
-import '../../../Model/export.dart';
+import '../../../Utils/export.dart';
 
 class BrandsScreen extends StatefulWidget {
   const BrandsScreen({Key key}) : super(key: key);
@@ -120,7 +120,7 @@ class _BrandsScreenState extends State<BrandsScreen> {
             title: Text("Confirmar"),
             content: Text("Deseja realmente excluir essa marca?"),
             actions: <Widget>[
-              FlatButton(
+              ElevatedButton(
                 child: Text(
                   "Cancelar",
                   style: TextStyle(color: Colors.grey),
@@ -129,8 +129,10 @@ class _BrandsScreenState extends State<BrandsScreen> {
                   Navigator.of(context).pop();
                 },
               ),
-              FlatButton(
-                color: Colors.red,
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                ),
                 child: Text(
                   "Remover",
                   style: TextStyle(color: Colors.white),
