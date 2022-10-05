@@ -1,6 +1,4 @@
-import 'package:celular/Model/RefModel.dart';
 import 'package:celular/Model/StoreModel.dart';
-
 import '../../../Utils/export.dart';
 
 class StoreScreen extends StatefulWidget {
@@ -19,6 +17,19 @@ class _StoreScreenState extends State<StoreScreen> {
   List _allResults = [];
   List _resultsList = [];
   Future resultsLoaded;
+  String storeUser='';
+
+  dataUser()async{
+    DocumentSnapshot snapshot = await db
+        .collection("user")
+        .doc(FirebaseAuth.instance.currentUser.email)
+        .get();
+    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+    print('teste : ${data['store']}');
+    setState(() {
+      storeUser = data['store']??'';
+    });
+  }
 
   _data() async {
     var data = await db.collection("store").get();
@@ -53,17 +64,43 @@ class _StoreScreenState extends State<StoreScreen> {
     });
   }
 
-  _deleteRef(String ref) {
+  _deleteStore(String store) {
 
-    db.collection("ref")
-        .doc(ref)
-        .delete()
-        .then((_){
-      Navigator.pushReplacementNamed(context, "/store");
-    });
+    if(storeUser!=store){
+      db.collection("store")
+          .doc(store)
+          .delete()
+          .then((_){
+        Navigator.pushReplacementNamed(context, "/store");
+      });
+    }else{
+      showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: Text("Erro"),
+              content: Text("Não pode ser deletada a loja que você está usando agora.\nMude a loja na tela inicial e tente novamente"),
+              actions: <Widget>[
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                  ),
+                  child: Text(
+                    "OK",
+                    style: TextStyle(color: Colors.white),
+                  ),
+                  onPressed: (){
+                    Navigator.pop(context);
+                    Navigator.pop(context);
+                  }
+                )
+              ],
+            );
+          });
+    }
   }
 
-  _showDialogDelete(String ref) {
+  _showDialogDelete(String store) {
     showDialog(
         context: context,
         builder: (context) {
@@ -88,7 +125,7 @@ class _StoreScreenState extends State<StoreScreen> {
                   "Remover",
                   style: TextStyle(color: Colors.white),
                 ),
-                onPressed: () => _deleteRef(ref),
+                onPressed: () => _deleteStore(store),
               )
             ],
           );
@@ -99,6 +136,7 @@ class _StoreScreenState extends State<StoreScreen> {
   void initState() {
     super.initState();
     _data();
+    dataUser();
     _controllerSearch.addListener(_search);
   }
 

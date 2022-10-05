@@ -5,7 +5,6 @@ import 'package:celular/Screens/Categories/Supply/add_supply_screen.dart';
 import 'package:celular/Screens/Categories/Supply/supplyScreen.dart';
 import 'package:celular/Utils/export.dart';
 import 'package:celular/Screens/Home/stockReport.dart';
-
 import '../Screens/Categories/Stories/StoreScreen.dart';
 
 class RouteGenerator{
