@@ -109,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   content: Row(
                                     children: [
                                       Expanded(
-                                          child:  Text('Informações incluídas no banco de dados')
+                                          child:  Text('Lojas atualizada com sucesso')
                                       ),
                                     ],
                                   ),

@@ -10,6 +10,7 @@ class UpdatesModel{
   String _quantity;
   String _type;
   String _item;
+  String _store;
 
   UpdatesModel();
 
@@ -35,7 +36,8 @@ class UpdatesModel{
       "peca" : this.part,
       "quantidade" : this.quantity,
       "tipo":this.type,
-      "item":this.item
+      "item":this.item,
+      "store":this.store,
     };
     return map;
   }
@@ -80,6 +82,13 @@ class UpdatesModel{
 
   set date(String value) {
     _date = value;
+  }
+
+
+  String get store => _store;
+
+  set store(String value) {
+    _store = value;
   }
 
   String get id => _id;

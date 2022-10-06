@@ -21,9 +21,23 @@ class _PriceHistoryState extends State<PriceHistory> {
   List _allResults = [];
   List _resultsList = [];
   Future resultsLoaded;
+  String storeUser = '';
+
+  dataUser()async{
+    DocumentSnapshot snapshot = await db
+        .collection("user")
+        .doc(FirebaseAuth.instance.currentUser.email)
+        .get();
+    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+    print('teste : ${data['store']}');
+    setState(() {
+      storeUser = data['store']??'';
+    });
+    _data();
+  }
 
   _data() async {
-    var data = await db.collection("historicoPrecos").orderBy('data').get();
+    var data = await db.collection("historicoPrecos").where('store',isEqualTo: storeUser).orderBy('data',descending: true).get();
 
     setState(() {
       _allResults = data.docs;
@@ -58,7 +72,7 @@ class _PriceHistoryState extends State<PriceHistory> {
   @override
   void initState() {
     super.initState();
-    _data();
+    dataUser();
     _controllerSearch.addListener(_search);
   }
 

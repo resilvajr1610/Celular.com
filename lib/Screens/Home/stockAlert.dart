@@ -17,9 +17,23 @@ class _StockAlertState extends State<StockAlert> {
   List _allResults = [];
   List _resultsList = [];
   Future resultsLoaded;
+  String storeUser = '';
+
+  dataUser()async{
+    DocumentSnapshot snapshot = await db
+        .collection("user")
+        .doc(FirebaseAuth.instance.currentUser.email)
+        .get();
+    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+    print('teste : ${data['store']}');
+    setState(() {
+      storeUser = data['store']??'';
+    });
+    _data();
+  }
 
   _data() async {
-    var data = await db.collection("pecas").get();
+    var data = await db.collection("pecas").where('store$storeUser',isEqualTo: storeUser).get();
 
     setState(() {
       _allResults = data.docs;
@@ -115,9 +129,7 @@ class _StockAlertState extends State<StockAlert> {
 
                   DocumentSnapshot item = _resultsList[indexGeral>=_resultsList.length?0:indexGeral];
 
-                  // print('index ${indexGeral>=_resultsList.length?0:indexGeral}');
-
-                  String stock = ErrorList(item,"estoque") ?? "";
+                  String stock = ErrorList(item,"estoque$storeUser") ?? "";
                   String stockMin = ErrorList(item,"estoqueMinimo") ?? "";
                   String brands = ErrorList(item,"marca") ?? "";
                   String model = ErrorList(item,"modelo") ?? "";
@@ -211,7 +223,7 @@ class _StockAlertState extends State<StockAlert> {
   @override
   void initState() {
     super.initState();
-    _data();
+    dataUser();
     _controllerSearch.addListener(_search);
   }
 
@@ -269,13 +281,15 @@ class _StockAlertState extends State<StockAlert> {
                           DocumentSnapshot item = _resultsList[index];
 
                           String id           = item["id"];
-                          String stock        = ErrorList(item,"estoque")??"";
+                          String stock        = ErrorList(item,"estoque$storeUser")??"";
                           String stockMin     = ErrorList(item,"estoqueMinimo")??"";
                           String peca         = ErrorList(item,"descricao")??"";
                           String selecionado2 = ErrorList(item,"selecionado2")??"";
                           String brands       = ErrorList(item,"marca")??"";
                           String model        = ErrorList(item,"modelo")??"";
                           String ref          = ErrorList(item,"referencia")??"";
+
+                          print('stock $stock');
 
                           if(stock==null || stock==""){
                             stock ="0";
@@ -286,7 +300,7 @@ class _StockAlertState extends State<StockAlert> {
 
                           int dif = int.parse(stockMin)-int.parse(stock);
 
-                          return dif<0?Container():Column(
+                          return Column(
                             children: [
                               ExampleDataReport(
                                 model: model,

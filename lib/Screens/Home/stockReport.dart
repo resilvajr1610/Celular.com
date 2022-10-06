@@ -17,9 +17,23 @@ class _StockReportState extends State<StockReport> {
   List _allResults = [];
   List _resultsList = [];
   Future resultsLoaded;
+  String storeUser = '';
+
+  dataUser()async{
+    DocumentSnapshot snapshot = await db
+        .collection("user")
+        .doc(FirebaseAuth.instance.currentUser.email)
+        .get();
+    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+    print('teste : ${data['store']}');
+    setState(() {
+      storeUser = data['store']??'';
+    });
+    _data();
+  }
 
   _data() async {
-    var data = await db.collection("pecas").get();
+    var data = await db.collection("pecas").where('store$storeUser',isEqualTo: storeUser).get();
 
     setState(() {
       _allResults = data.docs;
@@ -111,8 +125,8 @@ class _StockReportState extends State<StockReport> {
                   // print('index ${indexGeral>=_resultsList.length?0:indexGeral}');
 
                   String id = item["id"];
-                  String stock = ErrorList(item,"estoque") ?? "";
-                  String stockMin = ErrorList(item,"estoqueMinimo") ?? "";
+                  String stock = ErrorList(item,"estoque$storeUser") ?? "";
+                  String stockMin = ErrorList(item,"estoqueMinimo$storeUser") ?? "";
                   String brands = ErrorList(item,"marca") ?? "";
                   String model = ErrorList(item,"modelo") ?? "";
                   String description = ErrorList(item,"descricao") ?? "";
@@ -198,7 +212,7 @@ class _StockReportState extends State<StockReport> {
   @override
   void initState() {
     super.initState();
-    _data();
+    dataUser();
     _controllerSearch.addListener(_search);
   }
 
@@ -258,7 +272,7 @@ class _StockReportState extends State<StockReport> {
                             DocumentSnapshot item = _resultsList[index];
 
                             String id        = item["id"];
-                            String stock    = ErrorList(item,"estoque")??"";
+                            String stock    = ErrorList(item,"estoque$storeUser")??"";
                             String peca    = ErrorList(item,"descricao")??"";
                             String cor    = ErrorList(item,"cor")??"";
                             String foto    = ErrorList(item,"foto")??"";

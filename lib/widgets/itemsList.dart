@@ -36,10 +36,11 @@ class ItemsList extends StatelessWidget {
                 alignment: Alignment.centerLeft,
                 child: Text(
                   this.data!=null? this.data: this.item,
+                  maxLines: 3,
                   textAlign: TextAlign.left,
                   style: TextStyle(
                     overflow: TextOverflow.ellipsis,
-                    fontSize: 15,
+                    fontSize: 12,
                     color: PaletteColor.darkGrey,
                     fontWeight: FontWeight.w400,
                   ),

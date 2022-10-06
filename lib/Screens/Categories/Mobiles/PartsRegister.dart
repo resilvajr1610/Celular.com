@@ -12,13 +12,13 @@ class _PartsResgisterState extends State<PartsResgister> {
   FirebaseFirestore db = FirebaseFirestore.instance;
   FirebaseStorage storage = FirebaseStorage.instance;
   final _controllerBrands = StreamController<QuerySnapshot>.broadcast();
+  final _controllerRefBroadcast = StreamController<QuerySnapshot>.broadcast();
+  final _controllerModelBroadcast = StreamController<QuerySnapshot>.broadcast();
   final _controllerColors = StreamController<QuerySnapshot>.broadcast();
   final _controllerDisplay = StreamController<QuerySnapshot>.broadcast();
   final _scaffoldKey = GlobalKey<ScaffoldState>();
   PartsModel _partsModel;
   ColorsModel _colorsModel;
-  TextEditingController _controllerModel = TextEditingController();
-  TextEditingController _controllerRef = TextEditingController();
   TextEditingController _controllerStock = TextEditingController();
   TextEditingController _controllerStockMin = TextEditingController();
   TextEditingController _controllerPricePuschace = TextEditingController();
@@ -34,7 +34,10 @@ class _PartsResgisterState extends State<PartsResgister> {
   bool _sendData=false;
   File photo;
   String _urlPhoto;
+  String storeUser='';
   String _selectedBrands;
+  String _selectedRef;
+  String _selectedModel;
   String _selectedUp;
   String _selectedLow;
   bool saving = false;
@@ -48,6 +51,18 @@ class _PartsResgisterState extends State<PartsResgister> {
 
     stream.listen((data) {
       _controllerBrands.add(data);
+    });
+  }
+
+  Future<Stream<QuerySnapshot>> _addListenerRef()async{
+
+    Stream<QuerySnapshot> stream = db
+        .collection("ref")
+        .snapshots();
+
+    stream.listen((data) {
+      _controllerRefBroadcast.add(data);
+      _controllerModelBroadcast.add(data);
     });
   }
 
@@ -128,6 +143,126 @@ class _PartsResgisterState extends State<PartsResgister> {
               ],
             );
           }
+        }
+      },
+    );
+  }
+
+  Widget streamModel() {
+
+    _addListenerRef();
+
+    return StreamBuilder<QuerySnapshot>(
+      stream:_controllerModelBroadcast.stream,
+      builder: (context,snapshot){
+
+        if(snapshot.hasError)
+          return Text("Erro ao carregar dados!");
+
+        switch (snapshot.connectionState){
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return Container();
+          case ConnectionState.active:
+          case ConnectionState.done:
+
+            if(!snapshot.hasData){
+              return CircularProgressIndicator();
+            }else {
+              List<DropdownMenuItem> espItems = [];
+              for (int i = 0; i < snapshot.data.docs.length; i++) {
+                DocumentSnapshot snap = snapshot.data.docs[i];
+                espItems.add(
+                    DropdownMenuItem(
+                      child: Text(
+                        '${snap['modelo']}',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: PaletteColor.darkGrey),
+                      ),
+                      value: "${snap['modelo']}",
+                    )
+                );
+              }
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  DropdownButton(
+                    items: espItems,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedModel = value;
+                      });
+                    },
+                    value: _selectedModel,
+                    isExpanded: false,
+                    hint: new Text(
+                      "Escolha um modelo",
+                      style: TextStyle(color: PaletteColor.darkGrey),
+                    ),
+                  ),
+                ],
+              );
+            }
+        }
+      },
+    );
+  }
+
+  Widget streamRef() {
+
+    _addListenerRef();
+
+    return StreamBuilder<QuerySnapshot>(
+      stream:_controllerRefBroadcast.stream,
+      builder: (context,snapshot){
+
+        if(snapshot.hasError)
+          return Text("Erro ao carregar dados!");
+
+        switch (snapshot.connectionState){
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return Container();
+          case ConnectionState.active:
+          case ConnectionState.done:
+
+            if(!snapshot.hasData){
+              return CircularProgressIndicator();
+            }else {
+              List<DropdownMenuItem> espItems = [];
+              for (int i = 0; i < snapshot.data.docs.length; i++) {
+                DocumentSnapshot snap = snapshot.data.docs[i];
+                espItems.add(
+                    DropdownMenuItem(
+                      child: Text(
+                        "${snap.id}",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: PaletteColor.darkGrey),
+                      ),
+                      value: "${snap.id}",
+                    )
+                );
+              }
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  DropdownButton(
+                    items: espItems,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedRef = value;
+                      });
+                    },
+                    value: _selectedRef,
+                    isExpanded: false,
+                    hint: new Text(
+                      "Escolha uma referência",
+                      style: TextStyle(color: PaletteColor.darkGrey),
+                    ),
+                  ),
+                ],
+              );
+            }
         }
       },
     );
@@ -333,7 +468,7 @@ class _PartsResgisterState extends State<PartsResgister> {
   }
 
   _registerDatabase(String part,String description,String color){
-    if(_selectedBrands!=null && _controllerModel.text.isNotEmpty && _controllerRef.text.isNotEmpty){
+    if(_selectedBrands!=null && _selectedModel.isNotEmpty && _selectedRef.isNotEmpty){
       setState((){
         saving = true;
       });
@@ -343,34 +478,36 @@ class _PartsResgisterState extends State<PartsResgister> {
       Map<String,dynamic> dateUpdate = part!="PCB"?{
         "selecionado1" : _selectedUp,
         "selecionado2" : _selectedLow,
-        "estoque" : _controllerStock.text,
-        "estoqueMinimo" : _controllerStockMin.text,
-        "precoCompra" : _controllerPricePuschace.text,
-        "precoVenda" : _controllerPriceSale.text,
-        "referencia" : _controllerRef.text,
+        "estoque$storeUser" : _controllerStock.text,
+        "estoqueMinimo$storeUser" : _controllerStockMin.text,
+        "precoCompra$storeUser" : _controllerPricePuschace.text,
+        "precoVenda$storeUser" : _controllerPriceSale.text,
+        "referencia" : _selectedRef,
         "peca" : part,
         "marca": _selectedBrands,
-        "item":_selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text,
-        "modelo":_controllerModel.text,
+        "item":_selectedBrands+"_"+_selectedModel+"_"+part+"_"+_selectedRef,
+        "modelo":_selectedModel,
         "descricao":description,
         "cor":color,
-        "id":_partsModel.id
+        "id":_partsModel.id,
+        'store$storeUser': storeUser
       }:{
         "marca": _selectedBrands,
         "peca" : part,
         "descricao":description,
-        "modelo":_controllerModel.text,
-        "item":_selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text,
+        "modelo":_selectedModel,
+        "item":_selectedBrands+"_"+_selectedModel+"_"+part+"_"+_selectedRef,
         "selecionado1" : "N/A",
         "selecionado2" : "N/A",
-        "estoque" : "0",
-        "estoqueMinimo" : "0",
-        "precoCompra" : "0",
-        "precoVenda" : "0",
+        "estoque$storeUser" : "0",
+        "estoqueMinimo$storeUser" : "0",
+        "precoCompra$storeUser" : "0",
+        "precoVenda$storeUser" : "0",
         "referencia" : part,
         "cor":"Branco",
         "foto":"",
-        "id":_partsModel.id
+        "id":_partsModel.id,
+        'store$storeUser': storeUser
       };
 
       if(part=="PCB"){
@@ -412,15 +549,16 @@ class _PartsResgisterState extends State<PartsResgister> {
         _updatesModel.brand = _selectedBrands;
         _updatesModel.date = DateTime.now().toString();
         _updatesModel.price = _controllerPriceSale.text;
-        _updatesModel.item = _selectedBrands+"_"+_controllerModel.text+"_"+part+"_"+_controllerRef.text;
+        _updatesModel.item = _selectedBrands+"_"+_selectedModel+"_"+part+"_"+_selectedRef;
+        _updatesModel.store = storeUser;
 
         db.collection("pecas")
             .doc(_partsModel.id)
             .set(dateUpdate).then((_){
           db.collection('celulares')
-              .doc(_controllerModel.text)
+              .doc(_selectedModel)
               .set({
-            "celular":_controllerModel.text,
+            "celular":_selectedModel,
             "marca":_selectedBrands
 
           }).then((value){
@@ -504,7 +642,7 @@ class _PartsResgisterState extends State<PartsResgister> {
 
     db.collection("celulares")
         .doc(_selectedBrands)
-        .collection(_controllerModel.text)
+        .collection(_selectedModel)
         .doc(part)
         .update(dateUpdate);
   }
@@ -568,10 +706,24 @@ class _PartsResgisterState extends State<PartsResgister> {
   @override
   void initState() {
     super.initState();
+    dataUser();
     _addListenerBrands();
+    _addListenerRef();
     _addListenerColors();
     _addListenerDisplay();
     _partsModel = PartsModel();
+  }
+
+  dataUser()async{
+    DocumentSnapshot snapshot = await db
+        .collection("user")
+        .doc(FirebaseAuth.instance.currentUser.email)
+        .get();
+    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+    print('teste : ${data['store']}');
+    setState(() {
+      storeUser = data['store']??'';
+    });
   }
 
   @override
@@ -616,8 +768,14 @@ class _PartsResgisterState extends State<PartsResgister> {
               Container(
                 alignment: Alignment.center,
                 padding: EdgeInsets.symmetric(vertical: 10),
-                child: Text('Cadastrar Modelo',
+                child: Text('Cadastrar Peças',
                   style: TextStyle(fontSize: 20,color: PaletteColor.darkGrey),),
+              ),
+              Container(
+                alignment: Alignment.center,
+                padding: EdgeInsets.symmetric(vertical: 5),
+                child: Text('Loja: $storeUser',
+                  style: TextStyle(fontSize: 15,color: PaletteColor.darkGrey),),
               ),
               DropdownItens(
                   streamBuilder: streamBrands(),
@@ -626,9 +784,22 @@ class _PartsResgisterState extends State<PartsResgister> {
                       _selectedBrands = valor;
                     });
                   }),
-              SizedBox(height: 20),
-              InputRegister(keyboardType: TextInputType.text, controller: _controllerModel, hint: 'Modelo',width: width*0.7,fonts: 20,obscure: false,),
-              InputRegister(keyboardType: TextInputType.text, controller: _controllerRef, hint: 'Referências',width: width*0.7,fonts: 20,obscure: false,),
+              DropdownItens(
+                  streamBuilder: streamModel(),
+                  onChanged: (valor){
+                    setState(() {
+                      _selectedModel = valor;
+                    });
+                  }
+              ),
+              DropdownItens(
+                  streamBuilder: streamRef(),
+                  onChanged: (valor){
+                    setState(() {
+                      _selectedRef = valor;
+                    });
+                  }
+              ),
               saving?Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,

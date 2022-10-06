@@ -24,6 +24,20 @@ class _InputState extends State<Input> {
   String _item;
   String _stock;
   UpdatesModel _updatesModel;
+  String storeUser='';
+
+  dataUser()async{
+    DocumentSnapshot snapshot = await db
+        .collection("user")
+        .doc(FirebaseAuth.instance.currentUser.email)
+        .get();
+    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+    print('teste : ${data['store']}');
+    setState(() {
+      storeUser = data['store']??'';
+    });
+    _data();
+  }
 
   _data() async {
     var data = await db.collection("pecas").get();
@@ -69,6 +83,7 @@ class _InputState extends State<Input> {
     _updatesModel.date = DateTime.now().toString();
     _updatesModel.price = _controllerPriceSale.text;
     _updatesModel.item = _item;
+    _updatesModel.store = storeUser;
 
     int total = int.parse(_controllerStock.text)+int.parse(_stock);
 
@@ -76,8 +91,9 @@ class _InputState extends State<Input> {
         .collection("pecas")
         .doc(_id)
         .update({
-          "precoCompra":_controllerPriceSale.text,
-          "estoque":total.toString()
+          "precoCompra$storeUser":_controllerPriceSale.text,
+          "estoque$storeUser":total.toString(),
+          'store$storeUser': storeUser
         }).then((_) {
 
       db.collection("historicoPrecos")
@@ -103,7 +119,7 @@ class _InputState extends State<Input> {
   @override
   void initState() {
     super.initState();
-    _data();
+    dataUser();
     _controllerSearch.addListener(_search);
   }
 
@@ -161,7 +177,7 @@ class _InputState extends State<Input> {
 
                         _id   = item["id"];
                         _item = ErrorList(item,"item");
-                        String priceSale = ErrorList(item,"precoCompra");
+                        String priceSale = ErrorList(item,"precoCompra$storeUser");
                         _brand    = ErrorList(item,"marca");
                         _part    = ErrorList(item,"peca");
 
@@ -170,7 +186,8 @@ class _InputState extends State<Input> {
                             setState(() {
                               _visibility=true;
                               _stock="";
-                              _stock = ErrorList(item,"estoque")??"";
+                              _stock = ErrorList(item,"estoque$storeUser")==''?'0':ErrorList(item,"estoque$storeUser");
+                              print('stock $_stock');
                             });
                           },
                           data: _item,

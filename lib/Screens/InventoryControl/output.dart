@@ -24,6 +24,19 @@ class _OutputState extends State<Output> {
   String _item;
   String _stock;
   UpdatesModel _updatesModel;
+  String storeUser = '';
+
+  dataUser()async{
+    DocumentSnapshot snapshot = await db
+        .collection("user")
+        .doc(FirebaseAuth.instance.currentUser.email)
+        .get();
+    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+    setState(() {
+      storeUser = data['store']??'';
+    });
+    _data();
+  }
 
   _data() async {
     var data = await db.collection("pecas").get();
@@ -69,6 +82,7 @@ class _OutputState extends State<Output> {
     _updatesModel.date = DateTime.now().toString();
     _updatesModel.price = _controllerPriceSale.text;
     _updatesModel.item = _item;
+    _updatesModel.store = storeUser;
 
     int total = int.parse(_stock)-int.parse(_controllerStock.text);
 
@@ -103,7 +117,7 @@ class _OutputState extends State<Output> {
   @override
   void initState() {
     super.initState();
-    _data();
+    dataUser();
     _controllerSearch.addListener(_search);
   }
 
@@ -159,8 +173,8 @@ class _OutputState extends State<Output> {
 
                         _id        = item["id"];
                         _item   = ErrorList(item,"item");
-                        String stock    = ErrorList(item,"estoque")??"";
-                        String priceSale= ErrorList(item,"precoVenda")??"";
+                        String stock    = ErrorList(item,"estoque$storeUser")??"";
+                        String priceSale= ErrorList(item,"precoVenda$storeUser")??"";
                         _brand    = ErrorList(item,"marca")??"";
                         _part    = ErrorList(item,"peca")??"";
 
@@ -168,7 +182,7 @@ class _OutputState extends State<Output> {
                           onTapItem: (){
                             setState(() {
                               _stock="";
-                              _stock    = ErrorList(item,"estoque")??"";
+                              _stock    = ErrorList(item,"estoque$storeUser")??"";
                               _visibility=true;
                             });
                           },
