@@ -12,7 +12,6 @@ class _PartsResgisterState extends State<PartsResgister> {
   FirebaseFirestore db = FirebaseFirestore.instance;
   FirebaseStorage storage = FirebaseStorage.instance;
   final _controllerBrands = StreamController<QuerySnapshot>.broadcast();
-  final _controllerRefBroadcast = StreamController<QuerySnapshot>.broadcast();
   final _controllerModelBroadcast = StreamController<QuerySnapshot>.broadcast();
   final _controllerColors = StreamController<QuerySnapshot>.broadcast();
   final _controllerDisplay = StreamController<QuerySnapshot>.broadcast();
@@ -36,7 +35,7 @@ class _PartsResgisterState extends State<PartsResgister> {
   String _urlPhoto;
   String storeUser='';
   String _selectedBrands;
-  String _selectedRef;
+  String _selectedRef='';
   String _selectedModel;
   String _selectedUp;
   String _selectedLow;
@@ -54,14 +53,13 @@ class _PartsResgisterState extends State<PartsResgister> {
     });
   }
 
-  Future<Stream<QuerySnapshot>> _addListenerRef()async{
+  Future<Stream<QuerySnapshot>> _addListenerModel()async{
 
     Stream<QuerySnapshot> stream = db
-        .collection("ref")
+        .collection("ref").where('marca',isEqualTo: _selectedBrands)
         .snapshots();
 
     stream.listen((data) {
-      _controllerRefBroadcast.add(data);
       _controllerModelBroadcast.add(data);
     });
   }
@@ -131,6 +129,9 @@ class _PartsResgisterState extends State<PartsResgister> {
                   onChanged: (value) {
                     setState(() {
                       _selectedBrands = value;
+                      _selectedModel=null;
+                      _selectedRef='';
+                      _addListenerModel();
                     });
                   },
                   value: _selectedBrands,
@@ -150,8 +151,6 @@ class _PartsResgisterState extends State<PartsResgister> {
 
   Widget streamModel() {
 
-    _addListenerRef();
-
     return StreamBuilder<QuerySnapshot>(
       stream:_controllerModelBroadcast.stream,
       builder: (context,snapshot){
@@ -165,13 +164,13 @@ class _PartsResgisterState extends State<PartsResgister> {
             return Container();
           case ConnectionState.active:
           case ConnectionState.done:
-
-            if(!snapshot.hasData){
+          DocumentSnapshot snap;
+          if(!snapshot.hasData){
               return CircularProgressIndicator();
             }else {
               List<DropdownMenuItem> espItems = [];
               for (int i = 0; i < snapshot.data.docs.length; i++) {
-                DocumentSnapshot snap = snapshot.data.docs[i];
+                snap = snapshot.data.docs[i];
                 espItems.add(
                     DropdownMenuItem(
                       child: Text(
@@ -191,72 +190,13 @@ class _PartsResgisterState extends State<PartsResgister> {
                     onChanged: (value) {
                       setState(() {
                         _selectedModel = value;
+                        _selectedRef = snap['ref'];
                       });
                     },
                     value: _selectedModel,
                     isExpanded: false,
                     hint: new Text(
                       "Escolha um modelo",
-                      style: TextStyle(color: PaletteColor.darkGrey),
-                    ),
-                  ),
-                ],
-              );
-            }
-        }
-      },
-    );
-  }
-
-  Widget streamRef() {
-
-    _addListenerRef();
-
-    return StreamBuilder<QuerySnapshot>(
-      stream:_controllerRefBroadcast.stream,
-      builder: (context,snapshot){
-
-        if(snapshot.hasError)
-          return Text("Erro ao carregar dados!");
-
-        switch (snapshot.connectionState){
-          case ConnectionState.none:
-          case ConnectionState.waiting:
-            return Container();
-          case ConnectionState.active:
-          case ConnectionState.done:
-
-            if(!snapshot.hasData){
-              return CircularProgressIndicator();
-            }else {
-              List<DropdownMenuItem> espItems = [];
-              for (int i = 0; i < snapshot.data.docs.length; i++) {
-                DocumentSnapshot snap = snapshot.data.docs[i];
-                espItems.add(
-                    DropdownMenuItem(
-                      child: Text(
-                        "${snap.id}",
-                        textAlign: TextAlign.center,
-                        style: TextStyle(color: PaletteColor.darkGrey),
-                      ),
-                      value: "${snap.id}",
-                    )
-                );
-              }
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  DropdownButton(
-                    items: espItems,
-                    onChanged: (value) {
-                      setState(() {
-                        _selectedRef = value;
-                      });
-                    },
-                    value: _selectedRef,
-                    isExpanded: false,
-                    hint: new Text(
-                      "Escolha uma referência",
                       style: TextStyle(color: PaletteColor.darkGrey),
                     ),
                   ),
@@ -708,7 +648,6 @@ class _PartsResgisterState extends State<PartsResgister> {
     super.initState();
     dataUser();
     _addListenerBrands();
-    _addListenerRef();
     _addListenerColors();
     _addListenerDisplay();
     _partsModel = PartsModel();
@@ -792,21 +731,14 @@ class _PartsResgisterState extends State<PartsResgister> {
                     });
                   }
               ),
-              DropdownItens(
-                  streamBuilder: streamRef(),
-                  onChanged: (valor){
-                    setState(() {
-                      _selectedRef = valor;
-                    });
-                  }
-              ),
+              TextTitle(text: 'Ref : $_selectedRef' , fonts: fonts),
               saving?Center(
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     CircularProgressIndicator(),
                     SizedBox(width: 20),
-                    Text('Salvando informações ...')
+                    TextTitle(text: 'Salvando informações ...')
                   ],
                 ),
               ):Container(),
