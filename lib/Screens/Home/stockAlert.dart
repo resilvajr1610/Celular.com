@@ -25,10 +25,11 @@ class _StockAlertState extends State<StockAlert> {
         .doc(FirebaseAuth.instance.currentUser.email)
         .get();
     Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
-    print('teste : ${data['store']}');
-    setState(() {
-      storeUser = data['store']??'';
-    });
+    if(data['store']!=null){
+      setState(() {
+        storeUser = data['store']??'';
+      });
+    }
     _data();
   }
 
@@ -320,7 +321,7 @@ class _StockAlertState extends State<StockAlert> {
                   },
                 ),
               ),
-              ElevatedButton(
+              _resultsList.length == 0?Container():ElevatedButton(
                 child:Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

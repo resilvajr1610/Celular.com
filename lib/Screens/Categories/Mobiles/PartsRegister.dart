@@ -408,52 +408,77 @@ class _PartsResgisterState extends State<PartsResgister> {
   }
 
   _registerDatabase(String part,String description,String color){
-    if(_selectedBrands!=null && _selectedModel.isNotEmpty && _selectedRef.isNotEmpty){
-      setState((){
-        saving = true;
-      });
+    if(storeUser==''){
+      showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (context) {
+            return AlertDialog(
+              title: Center(child: Text('Erro ao Salvar')),
+              titleTextStyle: TextStyle(color: PaletteColor.darkGrey,fontSize: 20),
+              content: Row(
+                children: [
+                  Expanded(
+                      child:  Text('Escolha uma loja na tela inicial para salvar os dados')
+                  ),
+                ],
+              ),
+              contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
+              actions: [
+                ElevatedButton(
+                    onPressed: ()=>Navigator.pushReplacementNamed(context,'/home'),
+                    child: Text('OK')
+                )
+              ],
+            );
+          });
+    }else{
+      if(_selectedBrands!=null && _selectedModel.isNotEmpty && _selectedRef.isNotEmpty){
+        setState((){
+          saving = true;
+        });
 
-      _partsModel = PartsModel.createId();
+        _partsModel = PartsModel.createId();
 
-      Map<String,dynamic> dateUpdate = part!="PCB"?{
-        "selecionado1" : _selectedUp,
-        "selecionado2" : _selectedLow,
-        "estoque$storeUser" : _controllerStock.text,
-        "estoqueMinimo$storeUser" : _controllerStockMin.text,
-        "precoCompra$storeUser" : _controllerPricePuschace.text,
-        "precoVenda$storeUser" : _controllerPriceSale.text,
-        "referencia" : _selectedRef,
-        "peca" : part,
-        "marca": _selectedBrands,
-        "item":_selectedBrands+"_"+_selectedModel+"_"+part+"_"+_selectedRef,
-        "modelo":_selectedModel,
-        "descricao":description,
-        "cor":color,
-        "id":_partsModel.id,
-        'store$storeUser': storeUser
-      }:{
-        "marca": _selectedBrands,
-        "peca" : part,
-        "descricao":description,
-        "modelo":_selectedModel,
-        "item":_selectedBrands+"_"+_selectedModel+"_"+part+"_"+_selectedRef,
-        "selecionado1" : "N/A",
-        "selecionado2" : "N/A",
-        "estoque$storeUser" : "0",
-        "estoqueMinimo$storeUser" : "0",
-        "precoCompra$storeUser" : "0",
-        "precoVenda$storeUser" : "0",
-        "referencia" : part,
-        "cor":"Branco",
-        "foto":"",
-        "id":_partsModel.id,
-        'store$storeUser': storeUser
-      };
+        Map<String,dynamic> dateUpdate = part!="PCB"?{
+          "selecionado1" : _selectedUp,
+          "selecionado2" : _selectedLow,
+          "estoque$storeUser" : _controllerStock.text,
+          "estoqueMinimo$storeUser" : _controllerStockMin.text,
+          "precoCompra$storeUser" : _controllerPricePuschace.text,
+          "precoVenda$storeUser" : _controllerPriceSale.text,
+          "referencia" : _selectedRef,
+          "peca" : part,
+          "marca": _selectedBrands,
+          "item":_selectedBrands+"_"+_selectedModel+"_"+part+"_"+_selectedRef,
+          "modelo":_selectedModel,
+          "descricao":description,
+          "cor":color,
+          "id":_partsModel.id,
+          'store$storeUser': storeUser
+        }:{
+          "marca": _selectedBrands,
+          "peca" : part,
+          "descricao":description,
+          "modelo":_selectedModel,
+          "item":_selectedBrands+"_"+_selectedModel+"_"+part+"_"+_selectedRef,
+          "selecionado1" : "N/A",
+          "selecionado2" : "N/A",
+          "estoque$storeUser" : "0",
+          "estoqueMinimo$storeUser" : "0",
+          "precoCompra$storeUser" : "0",
+          "precoVenda$storeUser" : "0",
+          "referencia" : part,
+          "cor":"Branco",
+          "foto":"",
+          "id":_partsModel.id,
+          'store$storeUser': storeUser
+        };
 
-      if(part=="PCB"){
-        db.collection("pecas")
-            .doc(_partsModel.id)
-            .set(dateUpdate).then((value) =>setState((){
+        if(part=="PCB"){
+          db.collection("pecas")
+              .doc(_partsModel.id)
+              .set(dateUpdate).then((value) =>setState((){
             saving=false;
             showDialog(
                 context: context,
@@ -478,99 +503,100 @@ class _PartsResgisterState extends State<PartsResgister> {
                     ],
                   );
                 });
-        }));
+          }));
 
-      }else{
+        }else{
 
-        _updatesModel = UpdatesModel.createId();
-        _updatesModel.type = 'entrada';
-        _updatesModel.quantity = _controllerStock.text;
-        _updatesModel.part = part;
-        _updatesModel.brand = _selectedBrands;
-        _updatesModel.date = DateTime.now().toString();
-        _updatesModel.price = _controllerPriceSale.text;
-        _updatesModel.item = _selectedBrands+"_"+_selectedModel+"_"+part+"_"+_selectedRef;
-        _updatesModel.store = storeUser;
+          _updatesModel = UpdatesModel.createId();
+          _updatesModel.type = 'entrada';
+          _updatesModel.quantity = _controllerStock.text;
+          _updatesModel.part = part;
+          _updatesModel.brand = _selectedBrands;
+          _updatesModel.date = DateTime.now().toString();
+          _updatesModel.price = _controllerPriceSale.text;
+          _updatesModel.item = _selectedBrands+"_"+_selectedModel+"_"+part+"_"+_selectedRef;
+          _updatesModel.store = storeUser;
 
-        db.collection("pecas")
-            .doc(_partsModel.id)
-            .set(dateUpdate).then((_){
-          db.collection('celulares')
-              .doc(_selectedModel)
-              .set({
-            "celular":_selectedModel,
-            "marca":_selectedBrands
+          db.collection("pecas")
+              .doc(_partsModel.id)
+              .set(dateUpdate).then((_){
+            db.collection('celulares')
+                .doc(_selectedModel)
+                .set({
+              "celular":_selectedModel,
+              "marca":_selectedBrands
 
-          }).then((value){
+            }).then((value){
 
-            db.collection("historicoPrecos")
-                .doc(_updatesModel.id)
-                .set(_updatesModel.toMap());
+              db.collection("historicoPrecos")
+                  .doc(_updatesModel.id)
+                  .set(_updatesModel.toMap());
 
-          }).then((value){
+            }).then((value){
 
-            setState(() {
-              _controllerStock.clear();
-              _controllerStockMin.clear();
-              _controllerPricePuschace.clear();
-              _controllerPriceSale.clear();
-              description="";
-              color="";
-              part="";
-              _sendPhoto=false;
-              _sendData=true;
-              saving=false;
-              showDialog(
-                  context: context,
-                  barrierDismissible: false,
-                  builder: (context) {
-                    return AlertDialog(
-                      title: Center(child: Text('Salvo')),
-                      titleTextStyle: TextStyle(color: PaletteColor.darkGrey,fontSize: 20),
-                      content: Row(
-                        children: [
-                          Expanded(
-                              child:  Text('Informações incluídas no banco de dados')
-                          ),
+              setState(() {
+                _controllerStock.clear();
+                _controllerStockMin.clear();
+                _controllerPricePuschace.clear();
+                _controllerPriceSale.clear();
+                description="";
+                color="";
+                part="";
+                _sendPhoto=false;
+                _sendData=true;
+                saving=false;
+                showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    builder: (context) {
+                      return AlertDialog(
+                        title: Center(child: Text('Salvo')),
+                        titleTextStyle: TextStyle(color: PaletteColor.darkGrey,fontSize: 20),
+                        content: Row(
+                          children: [
+                            Expanded(
+                                child:  Text('Informações incluídas no banco de dados')
+                            ),
+                          ],
+                        ),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
+                        actions: [
+                          ElevatedButton(
+                              onPressed: ()=>Navigator.pop(context),
+                              child: Text('OK')
+                          )
                         ],
-                      ),
-                      contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
-                      actions: [
-                        ElevatedButton(
-                            onPressed: ()=>Navigator.pop(context),
-                            child: Text('OK')
-                        )
-                      ],
-                    );
-                  });
+                      );
+                    });
+              });
             });
           });
-        });
-      }
-    }else{
-      showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) {
-            return AlertDialog(
-              title: Center(child: Text('Erro ao Salvar')),
-              titleTextStyle: TextStyle(color: PaletteColor.darkGrey,fontSize: 20),
-              content: Row(
-                children: [
-                  Expanded(
-                      child:  Text('Preecha todos os campos corretamente')
-                  ),
+        }
+      }else{
+        showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) {
+              return AlertDialog(
+                title: Center(child: Text('Erro ao Salvar')),
+                titleTextStyle: TextStyle(color: PaletteColor.darkGrey,fontSize: 20),
+                content: Row(
+                  children: [
+                    Expanded(
+                        child:  Text('Preecha todos os campos corretamente')
+                    ),
+                  ],
+                ),
+                contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
+                actions: [
+                  ElevatedButton(
+                      onPressed: ()=>Navigator.pop(context),
+                      child: Text('OK')
+                  )
                 ],
-              ),
-              contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
-              actions: [
-                ElevatedButton(
-                    onPressed: ()=>Navigator.pop(context),
-                    child: Text('OK')
-                )
-              ],
-            );
-          });
+              );
+            });
+      }
     }
   }
 
@@ -660,9 +686,11 @@ class _PartsResgisterState extends State<PartsResgister> {
         .get();
     Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
     print('teste : ${data['store']}');
-    setState(() {
-      storeUser = data['store']??'';
-    });
+    if(data['store']!=null){
+      setState(() {
+        storeUser = data['store']??'';
+      });
+    }
   }
 
   @override

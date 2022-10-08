@@ -29,10 +29,11 @@ class _PriceHistoryState extends State<PriceHistory> {
         .doc(FirebaseAuth.instance.currentUser.email)
         .get();
     Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
-    print('teste : ${data['store']}');
-    setState(() {
-      storeUser = data['store']??'';
-    });
+    if(data['store']!=null){
+      setState(() {
+        storeUser = data['store']??'';
+      });
+    }
     _data();
   }
 
@@ -135,6 +136,7 @@ class _PriceHistoryState extends State<PriceHistory> {
                         String brand      = item["marca"]??"";
                         String part       = item["peca"]??"";
                         String type       = item["tipo"]??"";
+                        String supply     = ErrorList(item,"supply");
 
                         var outputFormat = DateFormat('dd/MM/yyyy');
                         var newdate = outputFormat.format(DateTime.parse(date));
@@ -146,6 +148,7 @@ class _PriceHistoryState extends State<PriceHistory> {
                           part: part,
                           brand: brand,
                           type: type,
+                          supply: supply,
                         );
                       });
                 },

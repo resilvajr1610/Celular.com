@@ -8,6 +8,7 @@ class ExampleDataHistory extends StatelessWidget {
   final String brand;
   final String part;
   final String type;
+  final String supply;
 
   ExampleDataHistory({
     @required this.date,
@@ -16,6 +17,7 @@ class ExampleDataHistory extends StatelessWidget {
     @required this.brand,
     @required this.part,
     @required this.type,
+    @required this.supply,
 });
 
   @override
@@ -44,10 +46,16 @@ class ExampleDataHistory extends StatelessWidget {
               Text(this.part,style: TextStyle(fontWeight: FontWeight.bold,color: PaletteColor.darkGrey))
             ],
           ),
-          Row(
+          supply==''?Container():Row(
             children: [
               Text('Tipo : '),
               Text(this.type,style: TextStyle(fontWeight: FontWeight.bold,color: PaletteColor.darkGrey))
+            ],
+          ),
+          Row(
+            children: [
+              Text('Fornecedor : '),
+              Text(this.supply,style: TextStyle(fontWeight: FontWeight.bold,color: PaletteColor.darkGrey))
             ],
           ),
           SizedBox(height: 10),

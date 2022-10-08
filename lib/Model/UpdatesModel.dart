@@ -11,6 +11,7 @@ class UpdatesModel{
   String _type;
   String _item;
   String _store;
+  String _supply;
 
   UpdatesModel();
 
@@ -38,6 +39,7 @@ class UpdatesModel{
       "tipo":this.type,
       "item":this.item,
       "store":this.store,
+      "supply":this.supply,
     };
     return map;
   }
@@ -84,6 +86,12 @@ class UpdatesModel{
     _date = value;
   }
 
+
+  String get supply => _supply;
+
+  set supply(String value) {
+    _supply = value;
+  }
 
   String get store => _store;
 

@@ -14,6 +14,8 @@ class _InputState extends State<Input> {
   TextEditingController _controllerSearch = TextEditingController();
   TextEditingController _controllerStock = TextEditingController();
   TextEditingController _controllerPriceSale = TextEditingController();
+  final _controllerBrands = StreamController<QuerySnapshot>.broadcast();
+  String _selectedSupply;
   List _allResults = [];
   List _resultsList = [];
   Future resultsLoaded;
@@ -32,10 +34,11 @@ class _InputState extends State<Input> {
         .doc(FirebaseAuth.instance.currentUser.email)
         .get();
     Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
-    print('teste : ${data['store']}');
-    setState(() {
-      storeUser = data['store']??'';
-    });
+    if(data['store']!=null){
+      setState(() {
+        storeUser = data['store']??'';
+      });
+    }
     _data();
   }
 
@@ -84,6 +87,7 @@ class _InputState extends State<Input> {
     _updatesModel.price = _controllerPriceSale.text;
     _updatesModel.item = _item;
     _updatesModel.store = storeUser;
+    _updatesModel.supply = _selectedSupply;
 
     int total = int.parse(_controllerStock.text)+int.parse(_stock);
 
@@ -93,7 +97,8 @@ class _InputState extends State<Input> {
         .update({
           "precoCompra$storeUser":_controllerPriceSale.text,
           "estoque$storeUser":total.toString(),
-          'store$storeUser': storeUser
+          'store$storeUser': storeUser,
+          'supply$storeUser':_selectedSupply
         }).then((_) {
 
       db.collection("historicoPrecos")
@@ -114,6 +119,78 @@ class _InputState extends State<Input> {
         });
 
     });
+  }
+
+  Future<Stream<QuerySnapshot>> _addListenerSupply()async{
+
+    Stream<QuerySnapshot> stream = db
+        .collection("supply")
+        .snapshots();
+
+    stream.listen((data) {
+      _controllerBrands.add(data);
+    });
+  }
+
+
+  Widget streamSupply() {
+
+    _addListenerSupply();
+
+    return StreamBuilder<QuerySnapshot>(
+      stream:_controllerBrands.stream,
+      builder: (context,snapshot){
+
+        if(snapshot.hasError)
+          return Text("Erro ao carregar dados!");
+
+        switch (snapshot.connectionState){
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return Container();
+          case ConnectionState.active:
+          case ConnectionState.done:
+
+            if(!snapshot.hasData){
+              return CircularProgressIndicator();
+            }else {
+              List<DropdownMenuItem> espItems = [];
+              for (int i = 0; i < snapshot.data.docs.length; i++) {
+                DocumentSnapshot snap = snapshot.data.docs[i];
+                espItems.add(
+                    DropdownMenuItem(
+                      child: Text(
+                        snap.id,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: PaletteColor.darkGrey),
+                      ),
+                      value: "${snap.id}",
+                    )
+                );
+              }
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  DropdownButton(
+                    items: espItems,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedSupply = value;
+                      });
+                    },
+                    value: _selectedSupply,
+                    isExpanded: false,
+                    hint: new Text(
+                      "Escolha o fornecedor",
+                      style: TextStyle(color: PaletteColor.darkGrey),
+                    ),
+                  ),
+                ],
+              );
+            }
+        }
+      },
+    );
   }
 
   @override
@@ -201,6 +278,13 @@ class _InputState extends State<Input> {
               visible: _visibility,
               child: Column(
                 children: [
+                  DropdownItens(
+                      streamBuilder: streamSupply(),
+                      onChanged: (valor){
+                        setState(() {
+                          _selectedSupply = valor;
+                        });
+                      }),
                   GroupStock(
                       title: "",
                       fontsTitle: 16,
@@ -235,7 +319,35 @@ class _InputState extends State<Input> {
                           color: PaletteColor.darkGrey
                       ),
                       ButtonsRegister(
-                          onTap: ()=>_updateValue(),
+                          onTap: (){
+                            if(_selectedSupply!=null && _controllerStock.text.isNotEmpty && _controllerPriceSale.text.isNotEmpty){
+                              _updateValue();
+                            }else{
+                              showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: Center(child: Text('Erro ao Salvar')),
+                                      titleTextStyle: TextStyle(color: PaletteColor.darkGrey,fontSize: 20),
+                                      content: Row(
+                                        children: [
+                                          Expanded(
+                                              child:  Text('Preecha todos os campos corretamente')
+                                          ),
+                                        ],
+                                      ),
+                                      contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
+                                      actions: [
+                                        ElevatedButton(
+                                            onPressed: ()=>Navigator.pop(context),
+                                            child: Text('OK')
+                                        )
+                                      ],
+                                    );
+                                  });
+                            }
+                          },
                           text: 'Atualizar',
                           color: PaletteColor.blueButton
                       ),

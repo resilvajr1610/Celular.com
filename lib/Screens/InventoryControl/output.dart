@@ -32,9 +32,11 @@ class _OutputState extends State<Output> {
         .doc(FirebaseAuth.instance.currentUser.email)
         .get();
     Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
-    setState(() {
-      storeUser = data['store']??'';
-    });
+    if(data['store']!=null){
+      setState(() {
+        storeUser = data['store']??'';
+      });
+    }
     _data();
   }
 
