@@ -27,6 +27,21 @@ class _MobilesScreenState extends State<MobilesScreen> {
   String _description = "";
   List _resultsList = [];
   List _allResults = [];
+  String storeUser='';
+
+  dataUser()async{
+    DocumentSnapshot snapshot = await db
+        .collection("user")
+        .doc(FirebaseAuth.instance.currentUser.email)
+        .get();
+    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+    if(data['store']!=null){
+      setState(() {
+        storeUser = data['store']??'';
+      });
+    }
+    _data();
+  }
 
   _data() async {
     var data = await db.collection("pecas").get();
@@ -127,6 +142,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
             idParts: idParts,
             brands: brands,
             description: description,
+            store: storeUser,
             color: color,
             selected1: selected1,
             controllerModel: controllerModel,
@@ -214,7 +230,7 @@ class _MobilesScreenState extends State<MobilesScreen> {
   @override
   void initState() {
     super.initState();
-    _data();
+    dataUser();
     _controllerSerch.addListener(_search);
   }
 
@@ -290,10 +306,10 @@ class _MobilesScreenState extends State<MobilesScreen> {
                                   _controllerModel = TextEditingController(text: ErrorList(item,"modelo"));
                                   _description = ErrorList(item,"descricao");
                                   _controllerRef = TextEditingController(text: ErrorList(item,"referencia"));
-                                  _controllerPriceSale = TextEditingController(text: ErrorList(item,"precoVenda"));
-                                  _controllerPricePurchase = TextEditingController(text: ErrorList(item,"precoCompra"));
-                                  _controllerStockMin = TextEditingController(text: ErrorList(item,"estoqueMinimo"));
-                                  _controllerStock = TextEditingController(text: ErrorList(item,"estoque"));
+                                  _controllerPriceSale = TextEditingController(text: ErrorList(item,"precoVenda$storeUser"));
+                                  _controllerPricePurchase = TextEditingController(text: ErrorList(item,"precoCompra$storeUser"));
+                                  _controllerStockMin = TextEditingController(text: ErrorList(item,"estoqueMinimo$storeUser"));
+                                  _controllerStock = TextEditingController(text: ErrorList(item,"estoque$storeUser"));
                                   _urlPhoto = ErrorList(item, "foto");
 
                                   _showDialogEdit(
@@ -331,6 +347,7 @@ class DialogEdit extends StatefulWidget {
   String selected1;
   String idParts;
   String description;
+  String store;
   Widget streamBrands;
   TextEditingController controllerModel;
   TextEditingController controllerRef;
@@ -343,6 +360,7 @@ class DialogEdit extends StatefulWidget {
   DialogEdit({
     this.brands,
     this.description,
+    this.store,
     this.idParts,
     this.controllerModel,
     this.color,
@@ -353,7 +371,7 @@ class DialogEdit extends StatefulWidget {
     this.controllerRef,
     this.controllerStock,
     this.streamBrands,
-    this.urlPhoto
+    this.urlPhoto,
   });
 
   @override
@@ -648,17 +666,18 @@ class _DialogEditState extends State<DialogEdit> {
     db.collection('pecas')
         .doc(idParts)
         .update({
-      'marca'         :widget.brands,
-      'selecionado1'  :widget.selected1,
-      'modelo'        :widget.controllerModel.text,
-      'descricao'     :widget.description,
-      'referencia'    :widget.controllerRef.text,
-      'cor'           :widget.color,
-      'precoVenda'    :widget.controllerPriceSale.text,
-      'precoCompra'   :widget.controllerPricePurchase.text,
-      'estoqueMinimo' :widget.controllerStockMin.text,
-      'estoque'       :widget.controllerStock.text,
-      'item'          :widget.brands+"_"+widget.controllerModel.text+"_"+widget.description+"_"+widget.color+"_"+widget.controllerRef.text,
+      'marca'                       :widget.brands,
+      'selecionado1'                :widget.selected1,
+      'modelo'                      :widget.controllerModel.text,
+      'descricao'                   :widget.description,
+      'referencia'                  :widget.controllerRef.text,
+      'cor'                         :widget.color,
+      'store${widget.store}'        :widget.store,
+      'precoVenda${widget.store}'   :widget.controllerPriceSale.text,
+      'precoCompra${widget.store}'  :widget.controllerPricePurchase.text,
+      'estoqueMinimo${widget.store}':widget.controllerStockMin.text,
+      'estoque${widget.store}'      :widget.controllerStock.text,
+      'item'                        :widget.brands+"_"+widget.controllerModel.text+"_"+widget.description+"_"+widget.color+"_"+widget.controllerRef.text+'_'+widget.store,
     })
         .then((_) {
       Navigator.of(context).pop();
