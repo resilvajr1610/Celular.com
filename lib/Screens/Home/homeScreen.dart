@@ -34,12 +34,12 @@ class _HomeScreenState extends State<HomeScreen> {
         .doc(FirebaseAuth.instance.currentUser.email)
         .get();
     Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
-    if(data['store']!=null){
-      setState(() {
-        storeUser = data['store']??'';
-        _selectedStore = storeUser;
-      });
-    }
+    // if(data['store']!=null){
+    //   setState(() {
+    //     storeUser = data['store']??'';
+    //     _selectedStore = storeUser;
+    //   });
+    // }
   }
 
   Future<Stream<QuerySnapshot>> _addListenerStories()async{

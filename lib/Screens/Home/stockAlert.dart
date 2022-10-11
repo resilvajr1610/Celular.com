@@ -131,7 +131,7 @@ class _StockAlertState extends State<StockAlert> {
                   DocumentSnapshot item = _resultsList[indexGeral>=_resultsList.length?0:indexGeral];
 
                   String stock = ErrorList(item,"estoque$storeUser") ?? "";
-                  String stockMin = ErrorList(item,"estoqueMinimo") ?? "";
+                  String stockMin = ErrorList(item,"estoqueMinimo$storeUser") ?? "";
                   String brands = ErrorList(item,"marca") ?? "";
                   String model = ErrorList(item,"modelo") ?? "";
                   String description = ErrorList(item,"descricao") ?? "";
@@ -283,7 +283,7 @@ class _StockAlertState extends State<StockAlert> {
 
                           String id           = item["id"];
                           String stock        = ErrorList(item,"estoque$storeUser")??"";
-                          String stockMin     = ErrorList(item,"estoqueMinimo")??"";
+                          String stockMin     = ErrorList(item,"estoqueMinimo$storeUser")??"";
                           String peca         = ErrorList(item,"descricao")??"";
                           String selecionado2 = ErrorList(item,"selecionado2")??"";
                           String brands       = ErrorList(item,"marca")??"";

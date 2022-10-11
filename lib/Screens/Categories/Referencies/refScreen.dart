@@ -1,4 +1,5 @@
 import 'package:celular/Model/RefModel.dart';
+import 'package:celular/Screens/Categories/Referencies/add_ref_screen.dart';
 
 import '../../../Utils/export.dart';
 
@@ -18,7 +19,6 @@ class _RefScreenState extends State<RefScreen> {
   List _allResults = [];
   List _resultsList = [];
   Future resultsLoaded;
-
 
   _data() async {
     var data = await db.collection("ref").get();
@@ -177,6 +177,7 @@ class _RefScreenState extends State<RefScreen> {
                                 showDelete: true,
                                 data: item["ref"],
                                 onPressedDelete: () => _showDialogDelete(item["ref"]),
+                                onPressedEdit: ()=>Navigator.pushReplacementNamed(context, '/add_ref',arguments:item["ref"]),
                               );
                             });
                       }

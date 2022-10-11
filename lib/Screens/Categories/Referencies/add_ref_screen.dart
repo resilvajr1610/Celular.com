@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'dart:io';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-
 import '../../../Model/colors.dart';
 import '../../../Utils/export.dart';
 import '../../../widgets/buttonCamera.dart';
@@ -13,7 +11,9 @@ import '../../../widgets/dropDownItens.dart';
 import '../../../widgets/inputRegister.dart';
 
 class AddRefScreen extends StatefulWidget {
-  const AddRefScreen({Key key}) : super(key: key);
+  String id;
+
+  AddRefScreen({this.id});
 
   @override
   State<AddRefScreen> createState() => _AddRefScreenState();
@@ -189,6 +189,26 @@ class _AddRefScreenState extends State<AddRefScreen> {
     });
   }
 
+  _dataRef()async{
+    DocumentSnapshot snapshot = await db.collection("ref").doc(widget.id).get();
+    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
+
+    setState(() {
+      _controllerRef = TextEditingController(text: widget.id);
+      _controllerModel = TextEditingController(text: data['modelo']);
+      _selectedBrands = data['marca'];
+      _urlPhoto = data['foto']??'';
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    if(widget.id!=null){
+      _dataRef();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
 
@@ -286,18 +306,49 @@ class _AddRefScreenState extends State<AddRefScreen> {
                   }
                 },
                 width: width*0.2
-            ):Center(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Image.network(_urlPhoto,
-                  width: 200,
-                  height: 200,
-                  errorBuilder: (BuildContext context,
-                      Object exception, StackTrace stackTrace) {
-                    return Container(height: 150,
-                        width: 150,
-                        child: Icon(Icons.do_not_disturb));
-                  },
+            ):GestureDetector(
+              onTap: (){
+                if(_controllerRef.text.isNotEmpty && _controllerModel.text.isNotEmpty && _selectedBrands!=null) {
+                  _savePhoto();
+                }else{
+                  showDialog(
+                      context: context,
+                      barrierDismissible: false,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: Center(child: Text('Erro')),
+                          titleTextStyle: TextStyle(color: PaletteColor.darkGrey,fontSize: 20),
+                          content: Row(
+                            children: [
+                              Expanded(
+                                  child:  Text('Preencha todos os campos corretamente para salvar a foto')
+                              ),
+                            ],
+                          ),
+                          contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
+                          actions: [
+                            ElevatedButton(
+                                onPressed: ()=>Navigator.pop(context),
+                                child: Text('OK')
+                            )
+                          ],
+                        );
+                      });
+                }
+              },
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Image.network(_urlPhoto,
+                    width: 200,
+                    height: 200,
+                    errorBuilder: (BuildContext context,
+                        Object exception, StackTrace stackTrace) {
+                      return Container(height: 150,
+                          width: 150,
+                          child: Icon(Icons.do_not_disturb));
+                    },
+                  ),
                 ),
               ),
             ),

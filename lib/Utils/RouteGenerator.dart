@@ -9,7 +9,7 @@ import '../Screens/Categories/Stories/StoreScreen.dart';
 
 class RouteGenerator{
     static Route<dynamic> generateRoute(RouteSettings settings){
-
+      final args = settings.arguments;
       switch(settings.name){
         case "/" :
           return MaterialPageRoute(
@@ -73,7 +73,7 @@ class RouteGenerator{
           );
         case "/add_ref" :
           return MaterialPageRoute(
-              builder: (_) => AddRefScreen()
+              builder: (_) => AddRefScreen(id: args,)
           );
         case "/supply" :
           return MaterialPageRoute(
