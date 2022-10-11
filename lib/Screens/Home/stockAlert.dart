@@ -146,7 +146,7 @@ class _StockAlertState extends State<StockAlert> {
 
                   int dif = int.parse(stockMin) - int.parse(stock);
 
-                  return indexGeral>=_resultsList.length && dif<0
+                  return indexGeral>=_resultsList.length
                     ?pdfLib.Container():pdfLib.Row(
                     mainAxisAlignment: pdfLib.MainAxisAlignment.spaceBetween,
                     children: [
