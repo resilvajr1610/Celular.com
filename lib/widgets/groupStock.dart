@@ -22,6 +22,7 @@ class GroupStock extends StatelessWidget {
   final bool showDisplay;
   final bool sendPhoto;
   final bool sendData;
+  final bool showStockAndPrice;
   final String titlePrice;
   final String title;
   final String subtitle;
@@ -46,6 +47,7 @@ class GroupStock extends StatelessWidget {
     @required this.showDropDownUp,
     @required this.showDropDownLow,
     @required this.showCod,
+    this.showStockAndPrice = false,
     this.onTapCamera,
     this.sendPhoto,
     this.sendData,
@@ -86,7 +88,7 @@ class GroupStock extends StatelessWidget {
         showCod?TextTitle(text: 'Código', fonts: fontsSubtitle):Container(),
         showCod? InputRegister(
           obscure: false,
-          keyboardType: TextInputType.number,
+          keyboardType: TextInputType.text,
           controller: this.controllerCod,
           hint: '0000000',
           width: width*0.5,
@@ -97,17 +99,17 @@ class GroupStock extends StatelessWidget {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                TextTitle(text: showPrice?'Estoque':"Quantidade",fonts: 14),
-                InputRegister(
+                showStockAndPrice?TextTitle(text: showPrice?'Estoque':"Quantidade",fonts: 14):Container(),
+                showStockAndPrice?InputRegister(
                   obscure: false,
                   keyboardType: TextInputType.number,
                   controller: this.controllerStock,
                   hint: '00',
                   width: width*0.2,
                   fonts: 14,
-                ),
-                showPrice?TextTitle(text: 'Preço Compra',fonts: 14):Container(),
-                showPrice?InputRegister(
+                ):Container(),
+                showPrice&&showStockAndPrice?TextTitle(text: 'Preço Compra',fonts: 14):Container(),
+                showPrice&&showStockAndPrice?InputRegister(
                   obscure: false,
                   keyboardType: TextInputType.number,
                   inputFormatter: [

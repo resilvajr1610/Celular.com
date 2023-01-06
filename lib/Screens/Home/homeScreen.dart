@@ -13,33 +13,15 @@ class _HomeScreenState extends State<HomeScreen> {
   FirebaseFirestore db = FirebaseFirestore.instance;
   final _controllerBroadcast = StreamController<QuerySnapshot>.broadcast();
   String _selectedStore;
-  String storeUser;
 
   @override
   void initState() {
     super.initState();
     if(auth.currentUser==null){
       Future.delayed(Duration.zero,(){
-        print("não entrou");
         Navigator.pushReplacementNamed(context, "/login");
       });
-    }else{
-      dataUser();
-    };
-  }
-
-  dataUser()async{
-    DocumentSnapshot snapshot = await db
-        .collection("user")
-        .doc(FirebaseAuth.instance.currentUser.email)
-        .get();
-    Map<String, dynamic> data = snapshot.data() as Map<String, dynamic>;
-    // if(data['store']!=null){
-    //   setState(() {
-    //     storeUser = data['store']??'';
-    //     _selectedStore = storeUser;
-    //   });
-    // }
+    }
   }
 
   Future<Stream<QuerySnapshot>> _addListenerStories()async{

@@ -152,7 +152,7 @@ class _RefScreenState extends State<RefScreen> {
                 ],
               ),
               Container(
-                height: height * 0.5,
+                height: height * 0.7,
                 child: StreamBuilder(
                   stream: _controllerBroadcast.stream,
                   builder: (context, snapshot) {
@@ -175,7 +175,7 @@ class _RefScreenState extends State<RefScreen> {
 
                               return ItemsList(
                                 showDelete: true,
-                                data: item["ref"],
+                                data: '${item["marca"]} - ${item["modelo"]} - ${item["ref"]}',
                                 onPressedDelete: () => _showDialogDelete(item["ref"]),
                                 onPressedEdit: ()=>Navigator.pushReplacementNamed(context, '/add_ref',arguments:item["ref"]),
                               );

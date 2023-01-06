@@ -8,12 +8,13 @@ class Output extends StatefulWidget {
 }
 
 class _OutputState extends State<Output> {
-
+  FirebaseAuth auth = FirebaseAuth.instance;
   FirebaseFirestore db = FirebaseFirestore.instance;
   TextEditingController _controllerSearch = TextEditingController();
   TextEditingController _controllerStock = TextEditingController();
   TextEditingController _controllerPriceSale = TextEditingController();
   var _controllerItem = StreamController<QuerySnapshot>.broadcast();
+  final _controllerBroadcast = StreamController<QuerySnapshot>.broadcast();
   List _allResults = [];
   List _resultsList = [];
   Future resultsLoaded;
@@ -25,6 +26,7 @@ class _OutputState extends State<Output> {
   String _stock;
   UpdatesModel _updatesModel;
   String storeUser = '';
+  String _selectedStore;
 
   dataUser()async{
     DocumentSnapshot snapshot = await db
@@ -92,8 +94,8 @@ class _OutputState extends State<Output> {
         .collection("pecas")
         .doc(_id)
         .update({
-      "precoVenda":_controllerPriceSale.text,
-      "estoque":total.toString()
+      "precoVenda$storeUser":_controllerPriceSale.text,
+      "estoque$storeUser":total.toString()
     }).then((_) {
 
       db.collection("historicoPrecos")
@@ -116,10 +118,110 @@ class _OutputState extends State<Output> {
     });
   }
 
+
+  Future<Stream<QuerySnapshot>> _addListenerStories()async{
+
+    Stream<QuerySnapshot> stream = db
+        .collection("store")
+        .snapshots();
+
+    stream.listen((data) {
+      _controllerBroadcast.add(data);
+    });
+  }
+
+  Widget streamStories() {
+
+    _addListenerStories();
+
+    return StreamBuilder<QuerySnapshot>(
+      stream:_controllerBroadcast.stream,
+      builder: (context,snapshot){
+
+        if(snapshot.hasError)
+          return Text("Erro ao carregar dados!");
+
+        switch (snapshot.connectionState){
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return Container();
+          case ConnectionState.active:
+          case ConnectionState.done:
+
+            if(!snapshot.hasData){
+              return CircularProgressIndicator();
+            }else {
+              List<DropdownMenuItem> espItems = [];
+              for (int i = 0; i < snapshot.data.docs.length; i++) {
+                DocumentSnapshot snap = snapshot.data.docs[i];
+                espItems.add(
+                    DropdownMenuItem(
+                      child: Text(
+                        snap.id,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: PaletteColor.darkGrey),
+                      ),
+                      value: "${snap.id}",
+                    )
+                );
+              }
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  DropdownButton(
+                    items: espItems,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedStore = value;
+                        db.collection('user').doc(auth.currentUser.email).set({
+                          'user' : auth.currentUser.email,
+                          'store' : _selectedStore
+                        }).then((value){
+                          dataUser();
+                          showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: Center(child: Text('Salvo')),
+                                  titleTextStyle: TextStyle(color: PaletteColor.darkGrey,fontSize: 20),
+                                  content: Row(
+                                    children: [
+                                      Expanded(
+                                          child:  Text('Lojas atualizada com sucesso')
+                                      ),
+                                    ],
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
+                                  actions: [
+                                    ElevatedButton(
+                                        onPressed: ()=>Navigator.pop(context),
+                                        child: Text('OK')
+                                    )
+                                  ],
+                                );
+                              });
+                        });
+                      });
+                    },
+                    value: _selectedStore,
+                    isExpanded: false,
+                    hint: new Text(
+                      "Escolha uma loja",
+                      style: TextStyle(color: PaletteColor.darkGrey),
+                    ),
+                  ),
+                ],
+              );
+            }
+        }
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
-    dataUser();
     _controllerSearch.addListener(_search);
   }
 
@@ -161,7 +263,17 @@ class _OutputState extends State<Output> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            InputSearch(controller: _controllerSearch),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: DropdownItens(
+                  streamBuilder: streamStories(),
+                  onChanged: (valor){
+                    setState(() {
+                      _selectedStore = valor;
+                    });
+                  }),
+            ),
+            InputSearch(controller: _controllerSearch,widthCustom: 0.9),
             Container(
               height: height * 0.4,
               child: StreamBuilder(
@@ -173,7 +285,6 @@ class _OutputState extends State<Output> {
                       itemBuilder: (BuildContext context, index) {
                         DocumentSnapshot item = _resultsList[index];
 
-                        _id        = item["id"];
                         _item   = ErrorList(item,"item");
                         String stock    = ErrorList(item,"estoque$storeUser")??"";
                         String priceSale= ErrorList(item,"precoVenda$storeUser")??"";
@@ -183,6 +294,7 @@ class _OutputState extends State<Output> {
                         return ItemsList(
                           onTapItem: (){
                             setState(() {
+                              _id        = item["id"];
                               _stock="";
                               _stock    = ErrorList(item,"estoque$storeUser")??"";
                               _visibility=true;
@@ -212,7 +324,9 @@ class _OutputState extends State<Output> {
                       showStockmin: false,
                       showPrice: false,
                       titlePrice: 'Preço venda',
-                      showCamera: false),
+                      showCamera: false,
+                      showStockAndPrice: true,
+                  ),
                   Container(
                     padding: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
                     alignment: Alignment.centerLeft,
@@ -232,7 +346,35 @@ class _OutputState extends State<Output> {
                           text: 'Cancelar',
                           color: PaletteColor.darkGrey),
                       ButtonsRegister(
-                          onTap: () => _updateValue(),
+                          onTap: (){
+                            if(storeUser!=''){
+                              _updateValue();
+                            }else{
+                              showDialog(
+                                  context: context,
+                                  barrierDismissible: false,
+                                  builder: (context) {
+                                    return AlertDialog(
+                                      title: Center(child: Text('Erro ao Salvar')),
+                                      titleTextStyle: TextStyle(color: PaletteColor.darkGrey,fontSize: 20),
+                                      content: Row(
+                                        children: [
+                                          Expanded(
+                                              child:  Text('Preecha todos os campos corretamente')
+                                          ),
+                                        ],
+                                      ),
+                                      contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
+                                      actions: [
+                                        ElevatedButton(
+                                            onPressed: ()=>Navigator.pop(context),
+                                            child: Text('OK')
+                                        )
+                                      ],
+                                    );
+                                  });
+                            }
+                          },
                           text: 'Dar Baixa',
                           color: PaletteColor.blueButton),
                     ],

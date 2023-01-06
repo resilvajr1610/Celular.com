@@ -124,6 +124,7 @@ class ExampleDataReport extends StatelessWidget {
                             ],
                           ),
                         ),
+                        this.showImagem?Container():SizedBox(height: 15),
                       ],
                     ),
                     Column(
@@ -143,7 +144,7 @@ class ExampleDataReport extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 2,horizontal: 8),
                           child: Row(
                             children: [
-                              Text('Quantidade faltante: '),
+                              Text('Quantidade\nfaltante: '),
                               SizedBox(width: 10),
                               Text(format.format(this.difference),style: TextStyle(fontWeight: FontWeight.bold,color: this.showImagem?PaletteColor.darkGrey:Colors.red))
                             ],

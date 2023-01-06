@@ -10,11 +10,13 @@ class Input extends StatefulWidget {
 class _InputState extends State<Input> {
 
   FirebaseFirestore db = FirebaseFirestore.instance;
+  FirebaseAuth auth = FirebaseAuth.instance;
   var _controllerItem = StreamController<QuerySnapshot>.broadcast();
   TextEditingController _controllerSearch = TextEditingController();
   TextEditingController _controllerStock = TextEditingController();
   TextEditingController _controllerPriceSale = TextEditingController();
   final _controllerBrands = StreamController<QuerySnapshot>.broadcast();
+  final _controllerBroadcast = StreamController<QuerySnapshot>.broadcast();
   String _selectedSupply;
   List _allResults = [];
   List _resultsList = [];
@@ -27,6 +29,7 @@ class _InputState extends State<Input> {
   String _stock;
   UpdatesModel _updatesModel;
   String storeUser='';
+  String _selectedStore;
 
   dataUser()async{
     DocumentSnapshot snapshot = await db
@@ -193,10 +196,110 @@ class _InputState extends State<Input> {
     );
   }
 
+  Future<Stream<QuerySnapshot>> _addListenerStories()async{
+
+    Stream<QuerySnapshot> stream = db
+        .collection("store")
+        .snapshots();
+
+    stream.listen((data) {
+      _controllerBroadcast.add(data);
+    });
+  }
+
+
+  Widget streamStories() {
+
+    _addListenerStories();
+
+    return StreamBuilder<QuerySnapshot>(
+      stream:_controllerBroadcast.stream,
+      builder: (context,snapshot){
+
+        if(snapshot.hasError)
+          return Text("Erro ao carregar dados!");
+
+        switch (snapshot.connectionState){
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return Container();
+          case ConnectionState.active:
+          case ConnectionState.done:
+
+            if(!snapshot.hasData){
+              return CircularProgressIndicator();
+            }else {
+              List<DropdownMenuItem> espItems = [];
+              for (int i = 0; i < snapshot.data.docs.length; i++) {
+                DocumentSnapshot snap = snapshot.data.docs[i];
+                espItems.add(
+                    DropdownMenuItem(
+                      child: Text(
+                        snap.id,
+                        textAlign: TextAlign.center,
+                        style: TextStyle(color: PaletteColor.darkGrey),
+                      ),
+                      value: "${snap.id}",
+                    )
+                );
+              }
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  DropdownButton(
+                    items: espItems,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedStore = value;
+                        db.collection('user').doc(auth.currentUser.email).set({
+                          'user' : auth.currentUser.email,
+                          'store' : _selectedStore
+                        }).then((value){
+                          dataUser();
+                          showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder: (context) {
+                                return AlertDialog(
+                                  title: Center(child: Text('Salvo')),
+                                  titleTextStyle: TextStyle(color: PaletteColor.darkGrey,fontSize: 20),
+                                  content: Row(
+                                    children: [
+                                      Expanded(
+                                          child:  Text('Lojas atualizada com sucesso')
+                                      ),
+                                    ],
+                                  ),
+                                  contentPadding: EdgeInsets.symmetric(horizontal: 16,vertical: 10),
+                                  actions: [
+                                    ElevatedButton(
+                                        onPressed: ()=>Navigator.pop(context),
+                                        child: Text('OK')
+                                    )
+                                  ],
+                                );
+                              });
+                        });
+                      });
+                    },
+                    value: _selectedStore,
+                    isExpanded: false,
+                    hint: new Text(
+                      "Escolha uma loja",
+                      style: TextStyle(color: PaletteColor.darkGrey),
+                    ),
+                  ),
+                ],
+              );
+            }
+        }
+      },
+    );
+  }
+
   @override
   void initState() {
     super.initState();
-    dataUser();
     _controllerSearch.addListener(_search);
   }
 
@@ -240,7 +343,17 @@ class _InputState extends State<Input> {
       body: SingleChildScrollView(
         child: Column(
           children: [
-            InputSearch(controller: _controllerSearch),
+            Container(
+              margin: const EdgeInsets.symmetric(horizontal: 10.0),
+              child: DropdownItens(
+                  streamBuilder: streamStories(),
+                  onChanged: (valor){
+                    setState(() {
+                      _selectedStore = valor;
+                    });
+                  }),
+            ),
+            InputSearch(controller: _controllerSearch,widthCustom: 0.9,),
             Container(
               height: height * 0.4,
               child: StreamBuilder(
@@ -252,7 +365,6 @@ class _InputState extends State<Input> {
                       itemBuilder: (BuildContext context, index) {
                         DocumentSnapshot item = _resultsList[index];
 
-                        _id   = item["id"];
                         _item = ErrorList(item,"item");
                         String priceSale = ErrorList(item,"precoCompra$storeUser");
                         _brand    = ErrorList(item,"marca");
@@ -261,6 +373,7 @@ class _InputState extends State<Input> {
                         return ItemsList(
                           onTapItem: (){
                             setState(() {
+                              _id   = item["id"];
                               _visibility=true;
                               _stock="";
                               _stock = ErrorList(item,"estoque$storeUser")==''?'0':ErrorList(item,"estoque$storeUser");
@@ -297,7 +410,8 @@ class _InputState extends State<Input> {
                       showStockmin: false,
                       showPrice: false,
                       titlePrice: 'Preço compra',
-                      showCamera: false
+                      showCamera: false,
+                      showStockAndPrice: true,
                   ),
                   Container(
                       padding: EdgeInsets.symmetric(horizontal: 10,vertical: 5),
@@ -320,7 +434,7 @@ class _InputState extends State<Input> {
                       ),
                       ButtonsRegister(
                           onTap: (){
-                            if(_selectedSupply!=null && _controllerStock.text.isNotEmpty && _controllerPriceSale.text.isNotEmpty){
+                            if(_selectedSupply!=null && _controllerStock.text.isNotEmpty && _controllerPriceSale.text.isNotEmpty && storeUser!=''){
                               _updateValue();
                             }else{
                               showDialog(

@@ -663,9 +663,7 @@ class _DialogEditState extends State<DialogEdit> {
 
   _edit(String idParts){
 
-    db.collection('pecas')
-        .doc(idParts)
-        .update({
+    db.collection('pecas').doc(idParts).update({
       'marca'                       :widget.brands,
       'selecionado1'                :widget.selected1,
       'modelo'                      :widget.controllerModel.text,
@@ -673,13 +671,10 @@ class _DialogEditState extends State<DialogEdit> {
       'referencia'                  :widget.controllerRef.text,
       'cor'                         :widget.color,
       'store${widget.store}'        :widget.store,
-      'precoVenda${widget.store}'   :widget.controllerPriceSale.text,
       'precoCompra${widget.store}'  :widget.controllerPricePurchase.text,
       'estoqueMinimo${widget.store}':widget.controllerStockMin.text,
-      'estoque${widget.store}'      :widget.controllerStock.text,
       'item'                        :widget.brands+"_"+widget.controllerModel.text+"_"+widget.description+"_"+widget.color+"_"+widget.controllerRef.text+'_'+widget.store,
-    })
-        .then((_) {
+    }).then((_) {
       Navigator.of(context).pop();
       Navigator.pushReplacementNamed(context, "/mobiles");
     });
@@ -709,37 +704,26 @@ class _DialogEditState extends State<DialogEdit> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                height: height * 0.15,
+                height: height * 0.1,
                 child: Row(
                   children: [
                     Text("Marca"),
-                    DropdownItens(
-                        width: width * 0.35,
-                        streamBuilder: streamBrands(),
-                        onChanged: (valor) {
-                          setState(() {
-                            widget.brands = valor;
-                          });
-                        }),
+                    SizedBox(width: 20,),
+                    TextTitle(text: widget.brands, fonts: 15)
                   ],
                 ),
               ),
               Row(
                 children: [
                   Text("Modelo"),
-                  Expanded(
-                      child: InputRegister(
-                        keyboardType: TextInputType.text,
-                        controller: widget.controllerModel,
-                        hint: "Modelo",
-                        fonts: 20,
-                        obscure: false,)
-                  ),
+                  SizedBox(width: 20,),
+                  TextTitle(text: widget.controllerModel.text, fonts: 15)
                 ],
               ),
               Row(
                 children: [
                   Text("Descrição"),
+                  SizedBox(width: 10,),
                   Expanded(
                       child: TextTitle(text: widget.description, fonts: 15)
                   ),
@@ -748,17 +732,11 @@ class _DialogEditState extends State<DialogEdit> {
               Row(
                 children: [
                   Text("Referência"),
-                  Expanded(
-                      child: InputRegister(
-                        keyboardType: TextInputType.text,
-                        controller: widget.controllerRef,
-                        hint: "Referência",
-                        fonts: 20,
-                        obscure: false,)
-                  ),
+                  SizedBox(width: 10,),
+                  TextTitle(text: widget.controllerRef.text, fonts: 15)
                 ],
               ),
-              Row(
+              widget.description=="Bateria"?Container():Row(
                 children: [
                   Text("Cor"),
                   DropdownItens(
@@ -771,7 +749,7 @@ class _DialogEditState extends State<DialogEdit> {
                       }),
                 ],
               ),
-              Row(
+              widget.description=="Bateria"?Container():Row(
                 children: [
                   Text("Display"),
                   DropdownItens(
@@ -787,33 +765,39 @@ class _DialogEditState extends State<DialogEdit> {
               Row(
                 children: [
                   Text("Preço Venda"),
-                  Expanded(
-                      child: InputRegister(
-                        keyboardType: TextInputType.text,
-                        controller: widget.controllerPriceSale,
-                        hint: "Preço Venda",
-                        fonts: 20,
-                        obscure: false,)
+                  Spacer(),
+                  Container(
+                    width: width*0.6,
+                    child: InputRegister(
+                      keyboardType: TextInputType.text,
+                      controller: widget.controllerPriceSale,
+                      hint: "Preço Venda",
+                      fonts: 20,
+                      obscure: false,)
                   ),
                 ],
               ),
-              Row(
-                children: [
-                  Text("Preço Compra"),
-                  Expanded(
-                      child: InputRegister(
-                        keyboardType: TextInputType.text,
-                        controller: widget.controllerPricePurchase,
-                        hint: "Preço Compra",
-                        fonts: 20,
-                        obscure: false,)
-                  ),
-                ],
-              ),
+              // Row(
+              //   children: [
+              //     Text("Preço Compra"),
+              //     Spacer(),
+              //     Container(
+              //         width: width*0.6,
+              //         child: InputRegister(
+              //           keyboardType: TextInputType.text,
+              //           controller: widget.controllerPricePurchase,
+              //           hint: "Preço Compra",
+              //           fonts: 20,
+              //           obscure: false,)
+              //     ),
+              //   ],
+              // ),
               Row(
                 children: [
                   Text("Estoque Mínimo"),
-                  Expanded(
+                  Spacer(),
+                  Container(
+                      width: width*0.6,
                       child: InputRegister(
                         keyboardType: TextInputType.text,
                         controller: widget.controllerStockMin,
@@ -823,19 +807,21 @@ class _DialogEditState extends State<DialogEdit> {
                   ),
                 ],
               ),
-              Row(
-                children: [
-                  Text("Estoque"),
-                  Expanded(
-                      child: InputRegister(
-                        keyboardType: TextInputType.text,
-                        controller: widget.controllerStock,
-                        hint: "Estoque",
-                        fonts: 20,
-                        obscure: false)
-                  ),
-                ],
-              ),
+              // Row(
+              //   children: [
+              //     Text("Estoque"),
+              //     Spacer(),
+              //     Container(
+              //         width: width*0.6,
+              //         child: InputRegister(
+              //           keyboardType: TextInputType.text,
+              //           controller: widget.controllerStock,
+              //           hint: "Estoque",
+              //           fonts: 20,
+              //           obscure: false)
+              //     ),
+              //   ],
+              // ),
               widget.urlPhoto != ""? Visibility(
                 visible: _updatePhoto,
                 child: GestureDetector(

@@ -146,7 +146,7 @@ class _StockAlertState extends State<StockAlert> {
 
                   int dif = int.parse(stockMin) - int.parse(stock);
 
-                  return indexGeral>=_resultsList.length
+                  return indexGeral>=_resultsList.length || dif<=0
                     ?pdfLib.Container():pdfLib.Row(
                     mainAxisAlignment: pdfLib.MainAxisAlignment.spaceBetween,
                     children: [
@@ -191,11 +191,8 @@ class _StockAlertState extends State<StockAlert> {
       pag = pag+lines;
     }
 
-
   final String dir = (await getApplicationDocumentsDirectory()).path;
-
   final String path = '$dir/AlertaEstoque.pdf';
-
   final File file = File(path);
   file.writeAsBytesSync(pdf.save());
   
@@ -301,7 +298,7 @@ class _StockAlertState extends State<StockAlert> {
 
                           int dif = int.parse(stockMin)-int.parse(stock);
 
-                          return Column(
+                          return dif<=0?Container():Column(
                             children: [
                               ExampleDataReport(
                                 model: model,

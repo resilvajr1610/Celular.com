@@ -3,9 +3,11 @@ import '../Utils/export.dart';
 class InputSearch extends StatelessWidget {
 
   final TextEditingController controller;
+  double widthCustom;
 
   InputSearch({
-    @required this.controller
+    @required this.controller,
+    this.widthCustom =  0.75
 });
 
   @override
@@ -16,7 +18,7 @@ class InputSearch extends StatelessWidget {
     return Container(
       alignment: Alignment.bottomLeft,
       height: 35,
-      width: width*0.75,
+      width: width*widthCustom,
       padding: EdgeInsets.symmetric(horizontal: 10),
       margin: EdgeInsets.symmetric(horizontal: 10,vertical: 15),
       decoration: BoxDecoration(
