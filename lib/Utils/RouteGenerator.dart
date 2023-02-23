@@ -29,7 +29,7 @@ class RouteGenerator{
           );
         case "/mobiles" :
           return MaterialPageRoute(
-              builder: (_) => MobilesScreen()
+              builder: (_) => PartsScreen()
           );
         case "/colors" :
           return MaterialPageRoute(

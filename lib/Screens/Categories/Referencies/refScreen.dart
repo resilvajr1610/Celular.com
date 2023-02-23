@@ -1,6 +1,4 @@
 import 'package:celular/Model/RefModel.dart';
-import 'package:celular/Screens/Categories/Referencies/add_ref_screen.dart';
-
 import '../../../Utils/export.dart';
 
 class RefScreen extends StatefulWidget {
@@ -14,7 +12,6 @@ class _RefScreenState extends State<RefScreen> {
 
   FirebaseFirestore db = FirebaseFirestore.instance;
   TextEditingController _controllerSearch = TextEditingController();
-  TextEditingController _controllerRegister = TextEditingController();
   var _controllerBroadcast = StreamController<QuerySnapshot>.broadcast();
   List _allResults = [];
   List _resultsList = [];
@@ -39,9 +36,11 @@ class _RefScreenState extends State<RefScreen> {
 
     if (_controllerSearch.text != "") {
       for (var items in _allResults) {
-        var brands = RefModel.fromSnapshot(items).ref.toLowerCase();
+        var ref = RefModel.fromSnapshotRef(items).ref.toLowerCase();
+        var brands = RefModel.fromSnapshotMarca(items).brand.toLowerCase();
+        var model = RefModel.fromSnapshotModelo(items).model.toLowerCase();
 
-        if (brands.contains(_controllerSearch.text.toLowerCase())) {
+        if (ref.contains(_controllerSearch.text.toLowerCase()) || brands.contains(_controllerSearch.text.toLowerCase()) || model.contains(_controllerSearch.text.toLowerCase())) {
           showResults.add(items);
         }
       }

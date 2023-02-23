@@ -15,9 +15,9 @@ export '../widgets/exampleDataHistory.dart';
 export '../widgets/buttonCamera.dart';
 
 export '../Screens/splash.dart';
-export '../Screens/Categories/Mobiles/PartsRegister.dart';
+export '../Screens/Categories/Parts/partsScreen.dart';
+export '../Screens/Categories/Parts/partsRegister.dart';
 export '../Screens/Categories/Brands/brandsScreen.dart';
-export '../Screens/Categories/Mobiles/mobilesScreen.dart';
 export '../Screens/Colors/colorsScreen.dart';
 export '../Screens/InventoryControl/output.dart';
 export '../Screens/InventoryControl/Input.dart';

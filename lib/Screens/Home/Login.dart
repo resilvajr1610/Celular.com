@@ -13,6 +13,7 @@ class _LoginState extends State<Login> {
   TextEditingController _controllerPassword = TextEditingController();
   FirebaseAuth _auth = FirebaseAuth.instance;
   String _error="";
+  bool login = false;
 
   _signFirebase()async{
 
@@ -22,15 +23,33 @@ class _LoginState extends State<Login> {
       });
 
       try{
-        await _auth.createUserWithEmailAndPassword(
-            email: _controllerEmail.text,
-            password: _controllerPassword.text
-        ).then((auth)async{
-         Future.delayed(Duration.zero,(){
-           print("logado");
-           Navigator.pushReplacementNamed(context, "/home");
-         });
-        });
+
+        if(login){
+          await _auth.signInWithEmailAndPassword(
+              email: _controllerEmail.text,
+              password: _controllerPassword.text
+          ).then((auth)async{
+            Future.delayed(Duration.zero,(){
+              print("criado usuário");
+              FirebaseFirestore.instance.collection('user').doc(auth.user.email).set({
+                'email':_controllerEmail.text,
+                'senha':_controllerPassword.text
+                },SetOptions(merge: true)).then((value) => Navigator.pushReplacementNamed(context, "/home"));
+
+            });
+          });
+        }else{
+          await _auth.createUserWithEmailAndPassword(
+              email: _controllerEmail.text,
+              password: _controllerPassword.text
+          ).then((auth)async{
+            FirebaseFirestore.instance.collection('user').doc(auth.user.email).set({
+              'email':_controllerEmail.text,
+              'senha':_controllerPassword.text
+            },SetOptions(merge: true)).then((value) => Navigator.pushReplacementNamed(context, "/home"));
+          });
+        }
+
       }on FirebaseAuthException catch (e) {
         if(e.code =="unknown"){
           setState(() {
@@ -99,7 +118,23 @@ class _LoginState extends State<Login> {
                     color: PaletteColor.blueButton
                 ),
               ),
-              Text(_error,style: TextStyle(color: Colors.red),)
+              Text(_error,style: TextStyle(color: Colors.red),),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                      width: width*0.2,
+                      child: Text('Cadastrar',style: TextStyle(color: Colors.white),)),
+                  Switch(value: login, onChanged: (value){
+                    setState(() {
+                      login = value;
+                    });
+                  }),
+                  Container(
+                      width: width*0.2,
+                      child: Text('Login',style: TextStyle(color: Colors.white),)),
+                ],
+              )
             ],
           ),
         ),

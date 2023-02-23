@@ -55,9 +55,7 @@ class _PartsResgisterState extends State<PartsResgister> {
 
   Future<Stream<QuerySnapshot>> _addListenerModel()async{
 
-    Stream<QuerySnapshot> stream = db
-        .collection("ref").where('marca',isEqualTo: _selectedBrands)
-        .snapshots();
+    Stream<QuerySnapshot> stream = db.collection("ref").where('marca',isEqualTo: _selectedBrands).snapshots();
 
     stream.listen((data) {
       _controllerModelBroadcast.add(data);
@@ -169,18 +167,21 @@ class _PartsResgisterState extends State<PartsResgister> {
               return CircularProgressIndicator();
             }else {
               List<DropdownMenuItem> espItems = [];
+              List ref = [];
+              List modelo = [];
               for (int i = 0; i < snapshot.data.docs.length; i++) {
                 snap = snapshot.data.docs[i];
                 espItems.add(
                     DropdownMenuItem(
-                      child: Text(
-                        '${snap['modelo']}',
+                      child: Text('${snap['modelo']}',
                         textAlign: TextAlign.center,
                         style: TextStyle(color: PaletteColor.darkGrey),
                       ),
                       value: "${snap['modelo']}",
                     )
                 );
+                modelo.add(snap['modelo']);
+                ref.add(snap.id);
               }
               return Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -190,7 +191,7 @@ class _PartsResgisterState extends State<PartsResgister> {
                     onChanged: (value) {
                       setState(() {
                         _selectedModel = value;
-                        _selectedRef = snap['ref'];
+                        _selectedRef = ref[modelo.indexOf(value)];
                       });
                     },
                     value: _selectedModel,
@@ -419,9 +420,9 @@ class _PartsResgisterState extends State<PartsResgister> {
         "selecionado1" : _selectedUp,
         "selecionado2" : _selectedLow,
         "estoque$storeUser" : _controllerStock.text,
-        "estoqueMinimo$storeUser" : _controllerStockMin.text,
-        "precoCompra$storeUser" : _controllerPricePuschace.text,
-        "precoVenda$storeUser" : _controllerPriceSale.text,
+        "estoqueMinimo" : _controllerStockMin.text,
+        "precoCompra" : _controllerPricePuschace.text,
+        "precoVenda" : _controllerPriceSale.text,
         "referencia" : _selectedRef,
         "peca" : part,
         "marca": _selectedBrands,
@@ -440,9 +441,9 @@ class _PartsResgisterState extends State<PartsResgister> {
         "selecionado1" : "N/A",
         "selecionado2" : "N/A",
         "estoque$storeUser" : "0",
-        "estoqueMinimo$storeUser" : "0",
-        "precoCompra$storeUser" : "0",
-        "precoVenda$storeUser" : "0",
+        "estoqueMinimo" : "0",
+        "precoCompra" : "0",
+        "precoVenda" : "0",
         "referencia" : part,
         "cor":"Branco",
         "foto":"",

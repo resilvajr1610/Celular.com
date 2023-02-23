@@ -34,7 +34,7 @@ class _StockReportState extends State<StockReport> {
   }
 
   _data() async {
-    var data = await db.collection("pecas").where('store$storeUser',isEqualTo: storeUser).get();
+    var data = await db.collection("pecas").get();
 
     setState(() {
       _allResults = data.docs;
@@ -127,7 +127,7 @@ class _StockReportState extends State<StockReport> {
 
                   String id = item["id"];
                   String stock = ErrorList(item,"estoque$storeUser") ?? "";
-                  String stockMin = ErrorList(item,"estoqueMinimo$storeUser") ?? "";
+                  String stockMin = ErrorList(item,"estoqueMinimo") ?? "";
                   String brands = ErrorList(item,"marca") ?? "";
                   String model = ErrorList(item,"modelo") ?? "";
                   String description = ErrorList(item,"descricao") ?? "";

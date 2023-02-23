@@ -1,13 +1,13 @@
 import '../../../Utils/export.dart';
 
-class MobilesScreen extends StatefulWidget {
-  const MobilesScreen({Key key}) : super(key: key);
+class PartsScreen extends StatefulWidget {
+  const PartsScreen({Key key}) : super(key: key);
 
   @override
-  _MobilesScreenState createState() => _MobilesScreenState();
+  _PartsScreenState createState() => _PartsScreenState();
 }
 
-class _MobilesScreenState extends State<MobilesScreen> {
+class _PartsScreenState extends State<PartsScreen> {
 
   FirebaseFirestore db = FirebaseFirestore.instance;
   final _controllerMobiles = StreamController<QuerySnapshot>.broadcast();
@@ -134,6 +134,8 @@ class _MobilesScreenState extends State<MobilesScreen> {
       final controllerStockMin,
       String urlPhoto,
       ) {
+
+    print('teste ${controllerStock.text}');
 
     showDialog(
         context: context,
@@ -306,11 +308,13 @@ class _MobilesScreenState extends State<MobilesScreen> {
                                   _controllerModel = TextEditingController(text: ErrorList(item,"modelo"));
                                   _description = ErrorList(item,"descricao");
                                   _controllerRef = TextEditingController(text: ErrorList(item,"referencia"));
-                                  _controllerPriceSale = TextEditingController(text: ErrorList(item,"precoVenda$storeUser"));
-                                  _controllerPricePurchase = TextEditingController(text: ErrorList(item,"precoCompra$storeUser"));
-                                  _controllerStockMin = TextEditingController(text: ErrorList(item,"estoqueMinimo$storeUser"));
-                                  _controllerStock = TextEditingController(text: ErrorList(item,"estoque$storeUser"));
+                                  _controllerPriceSale = TextEditingController(text: ErrorList(item,"precoVenda"));
+                                  _controllerPricePurchase = TextEditingController(text: ErrorList(item,"precoCompra"));
+                                  _controllerStockMin = TextEditingController(text: ErrorList(item,"estoqueMinimo"));
+                                  _controllerStock = TextEditingController(text: ErrorList(item,"estoque"));
                                   _urlPhoto = ErrorList(item, "foto");
+
+                                  print(_controllerPriceSale.text);
 
                                   _showDialogEdit(
                                       idParts,
@@ -671,8 +675,8 @@ class _DialogEditState extends State<DialogEdit> {
       'referencia'                  :widget.controllerRef.text,
       'cor'                         :widget.color,
       'store${widget.store}'        :widget.store,
-      'precoCompra${widget.store}'  :widget.controllerPricePurchase.text,
-      'estoqueMinimo${widget.store}':widget.controllerStockMin.text,
+      'precoVenda'                  :widget.controllerPriceSale.text,
+      'estoqueMinimo'               :widget.controllerStockMin.text,
       'item'                        :widget.brands+"_"+widget.controllerModel.text+"_"+widget.description+"_"+widget.color+"_"+widget.controllerRef.text+'_'+widget.store,
     }).then((_) {
       Navigator.of(context).pop();
@@ -777,21 +781,6 @@ class _DialogEditState extends State<DialogEdit> {
                   ),
                 ],
               ),
-              // Row(
-              //   children: [
-              //     Text("Preço Compra"),
-              //     Spacer(),
-              //     Container(
-              //         width: width*0.6,
-              //         child: InputRegister(
-              //           keyboardType: TextInputType.text,
-              //           controller: widget.controllerPricePurchase,
-              //           hint: "Preço Compra",
-              //           fonts: 20,
-              //           obscure: false,)
-              //     ),
-              //   ],
-              // ),
               Row(
                 children: [
                   Text("Estoque Mínimo"),
@@ -807,21 +796,6 @@ class _DialogEditState extends State<DialogEdit> {
                   ),
                 ],
               ),
-              // Row(
-              //   children: [
-              //     Text("Estoque"),
-              //     Spacer(),
-              //     Container(
-              //         width: width*0.6,
-              //         child: InputRegister(
-              //           keyboardType: TextInputType.text,
-              //           controller: widget.controllerStock,
-              //           hint: "Estoque",
-              //           fonts: 20,
-              //           obscure: false)
-              //     ),
-              //   ],
-              // ),
               widget.urlPhoto != ""? Visibility(
                 visible: _updatePhoto,
                 child: GestureDetector(
